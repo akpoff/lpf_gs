@@ -1,0 +1,307 @@
+#!/bin/sh
+
+#
+# Copyright (c) 2016 Aaron Poffenberger <akp@hypernote.com>
+#
+# Permission to use, copy, modify, and distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+#
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+# WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+# ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+# WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+# ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+# OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+#
+
+#
+# lpf_gs is an lpd(8) accounting filter that takes a PostScript, PDF
+# or text file via stdin and converts it to an output format based on
+# the calling name of the program using ghostscript. lpf_gs is based on
+# the default lpd(8) accounting filter lpf, though written in SH(1)
+# rather than c.
+#
+# The calling name must be in the form of lpf_<device> where
+# <device> is an output device known by ghostscript.
+#
+# Using the calling name is necessary because printcap(5) definitions
+# only allow specifying the accounting filter path and name. The
+# few parameters sent to the filter are specified and sent by lpd(8)
+# Using the calling name to specify the output device works around
+# this limitation.
+#
+# In most cases just a couple of links are required. Most printers
+# accept one or more of just a few printer-control languages (PCL)
+# or page-description languages (PDL).
+#
+# The most common are:
+#  ASCII + control flow (dot-matrix and line printers)
+#  PCL (typically PCL3 - PCL6)
+#  PostScript
+#
+# Check your printer manual for details about which PCLs or PDLs
+# your printer accepts.
+#
+# To use an lpd(8) definition with lpf_gs you'll need an entry in
+# the system printcap(5) file specifying the accounting filter.
+#
+# lp|local line printer:\
+# 	:af=/var/log/lpd-acct:\		# accounting file (optional)
+# 	:if=/usr/local/bin/lpf_ljet4:\	# a link to lpf_gs
+# 	:lf=/var/log/lpd-errs:\		# error log
+# 	:lp=9100@192.168.68.10:\        # printer raw port
+# 	:mx#0:\				# turn-off max file size
+# 	:sd=/var/spool/output/lpd:\	# spool directory
+# 	:sh:				# suppress burst-page header
+#
+# The definition above will convert the input print job to HP
+# Laser Jet 4 PCL which many printers will accept.
+#
+# The "lp:9100@192.168.68.10" line directs lpd(8) to send the
+# output of the accounting filter to port 9100 on the remote
+# system. Port 9100 is a common port for printers to listen for
+# raw streams. Port 515 is the default port for lpd(8) services
+# which may have their own accounting filters which may convert
+# the file in unexpected ways.
+#
+# Use a remote lpd only when you're sure the remote lpd(8) can
+# process the file and use lpr(8) with an appropriate printcap(5)
+# entry.
+#
+# A list of available output devices can be found by executing
+# gs -h
+#
+# E.g., ln -s /usr/local/bin/lpf_gs /usr/local/bin/lpf_ljet4
+# creates a link to lpf_gs that converts from postscript to
+# laserjet4 PCL.
+#
+# In addition to converting input formats, as an accounting filter,
+# lpf_gs logs accounting information if given an accounting file to
+# log to.
+#
+# BUGS:
+# lpd(8) accepts the following return codes:
+# -1 non-recoverable error
+#  0 success
+#  1 try again
+#  2 success but with some errors
+#
+# The exit command in SH(1) only allows values ranging from
+# 0 - 255. lpf_gs exits with 1 for all error conditions and
+# prints an error message to stderr.
+#
+# This doesn't seem to be a problem. lpd(8) tries 3 times
+# and aborts if it doesn't receive 0 or 2.
+#
+
+# setup
+__basename="lpf_gs"
+__progname=$(basename $0)
+gs_device=$(basename ${__progname} '.if' | cut -d '_' -f 2)
+pid=$$
+hostname=$(hostname -s)
+tmpfile=/tmp/$gs_device.$pid.$RANDOM
+
+# command line parameters that will be passed in from lpd
+# printcap(5) FILTERS section
+af=""		  # accounting file path
+ctrl=$FALSE	  # whether to pass control characters literally
+host="(null)"	  # sending host
+indent=0	  # how much to indent
+job=""		  # job name
+length=66	  # page length (default from lpf.c)
+name=""		  # user who started job
+width=132	  # page width (default from lpf.c)
+
+# other variables
+TRUE=0
+FALSE=1
+call="$0 $@"
+cmd="print"	  # options: abort | print | usage | version
+debug=$FALSE
+exit_err=1
+gs=$(which gs)
+version="1.0"
+
+function log_msg {
+  msg="$@"
+  if [ ! -t 0 ]
+  then
+    if [ "${msg:-empty}" != "empty" ]
+    then
+      # sane date format but different from lpd
+      # date=$(date "+%Y-%m-%d %H:%M:%S")
+      
+      # format date like lpd
+      date=$(date "+%b %e %H:%M:%S")
+      
+      # send to stderr for logging
+      # lpd will handle logging
+      echo "$date $hostname ${__progname}[$pid]: ($job) $msg" >&2
+    fi
+  else
+    # send to stdout to work with pipes
+    # when users call from cl
+    echo $msg
+  fi
+}
+
+# does the real work
+function print {
+  # send stdin to a file we can test format for
+  cat > $tmpfile
+  ft=$(file -b $tmpfile | cut -d ' ' -f 1)
+  gs_in_file=$tmpfile
+  can_convert=$TRUE
+  case $ft in
+    ASCII)
+      can_convert=$FALSE
+      log_msg ASCII, abort conversion...
+      ;;
+    PDF)
+      log_msg Converting from PDF to $gs_device
+      ;;
+    PostScript)
+      log_msg Converting PostScript to $gs_device
+      ;;
+    *)
+      can_convert=$FALSE
+      log_msg Unknown file type $ft, aborting conversion...
+  esac
+
+  if [ ${can_convert} -eq $TRUE ]
+  then
+    if [ "${af:-empty}" != "empty" ]
+    then
+      npages=$($gs -q -dNODISPLAY -c "($tmpfile) (r) file runpdfbegin pdfpagecount = quit")
+      printf "%7.2f\t%s:%s\n" "$npages" "$host" "$name" >> $af
+    fi
+
+    $gs -q -dNOPROMPT -dNOPAUSE -dSAFER -dBATCH -dNOPAUSE -sDEVICE=$gs_device -sOutputFile=- $tmpfile -c quit
+  fi
+  exit $err_exit
+}
+
+function version {
+  log_msg "$__basename $version - (linked as $__progname)"
+}
+
+function usage {
+  # dispose of stdin data
+  if [ ! -t 0 ]
+  then
+    cat > /dev/null
+  fi
+  version
+  log_msg
+  opts="[-c] [-h host] [-i indent] [-l length] [-n name] [-w width] [acctfile]"
+  log_msg usage: $__progname $opts
+  log_msg
+}
+
+function debug {
+  if [ $debug -eq $TRUE -o "${LPF_GS_DEBUG:-empty}" != "empty" ]
+  then
+    log_msg Variables:
+    log_msg $call
+    log_msg device=$gs_device
+    log_msg af=$af
+    log_msg ctrl=$ctrl
+    log_msg host=$host
+    log_msg gs=$gs
+    log_msg indent=$indent
+    log_msg length=$length
+    log_msg name=$name
+    log_msg width=$width
+    log_msg pid=$pid
+    log_msg cmd=$cmd
+    log_msg version=$version
+    log_msg
+  fi
+}
+
+trap "rm -f ${tmpfile}" EXIT
+
+trap "log_msg ${__progname} aborted by user;rm -f ${tmpfile};exit" INT
+
+has_gs_device=$(gs -h | grep $gs_device | wc -l)
+if [ $has_gs_device -eq 0 ]
+then
+  version
+  log_msg
+  log_msg "No such ghostscript device '$gs_device' (cf gs -h)"
+  log_msg
+  log_msg "Execute 'gs -h' to see a list of supported devices."
+  exit $err_exit
+fi
+
+if [ "${gs:-empty}" = "empty" ]
+then
+  version
+  log_msg
+  log_msg "Unable to find ghostscript."
+  exit $err_exit
+fi
+
+while getopts :cdh:i:j:l:n:vw: opt;
+do
+  case ${opt} in
+    c)
+      ctrl=$TRUE
+      ;;
+    d)
+      debug=$TRUE
+      ;;
+    h)
+      host=${OPTARG}
+      ;;
+    i)
+      indent=${OPTARG}
+      ;;
+    j)
+      job=${OPTARG}
+      ;;
+    l)
+      length=${OPTARG}
+      ;;
+    n)
+      name=${OPTARG}
+      ;;
+    v)
+      cmd="version"
+      ;;
+    :)
+      log_msg "${__progname}: option requires an argument -- ${OPTARG}"
+      log_msg
+      cmd=abort
+      ;;
+    \?)
+      log_msg "${__progname}: invalid option -- ${OPTARG}"
+      log_msg
+      cmd=abort
+      ;;
+  esac
+done
+shift $(( OPTIND - 1 ))
+# get remaining parameter as accounting file
+af=$@
+
+case $cmd in
+  print)
+    print
+    ;;
+  version)
+    version
+    ;;
+  usage)
+    usage
+    ;;
+  *)
+    usage
+    debug
+    exit $err_exit
+    ;;
+esac
+debug
