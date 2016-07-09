@@ -126,100 +126,94 @@ gs=$(which gs)
 version="1.0"
 
 function log_msg {
-  msg="$@"
-  if [ ! -t 0 ]
-  then
-    if [ "${msg:-empty}" != "empty" ]
-    then
-      # sane date format but different from lpd
-      # date=$(date "+%Y-%m-%d %H:%M:%S")
-      
-      # format date like lpd
-      date=$(date "+%b %e %H:%M:%S")
-      
-      # send to stderr for logging
-      # lpd will handle logging
-      echo "$date $hostname ${__progname}[$pid]: ($job) $msg" >&2
-    fi
-  else
-    # send to stdout to work with pipes
-    # when users call from cl
-    echo $msg
-  fi
+	msg="$@"
+	if [ ! -t 0 ] ; then
+	  if [ "${msg:-empty}" != "empty" ] ; then
+	    # sane date format but different from lpd
+	    # date=$(date "+%Y-%m-%d %H:%M:%S")
+
+	    # format date like lpd
+	    date=$(date "+%b %e %H:%M:%S")
+
+	    # send to stderr for logging
+	    # lpd will handle logging
+	    echo "$date $hostname ${__progname}[$pid]: ($job) $msg" >&2
+	  fi
+	else
+		# send to stdout to work with pipes
+		# when users call from cl
+		echo $msg
+	fi
 }
 
 # does the real work
 function print {
-  # send stdin to a file we can test format for
-  cat > $tmpfile
-  ft=$(file -b $tmpfile | cut -d ' ' -f 1)
-  gs_in_file=$tmpfile
-  can_convert=$TRUE
-  case $ft in
-    ASCII)
-      can_convert=$FALSE
-      log_msg ASCII, abort conversion...
-      ;;
-    PDF)
-      log_msg Converting from PDF to $gs_device
-      ;;
-    PostScript)
-      log_msg Converting PostScript to $gs_device
-      ;;
-    *)
-      can_convert=$FALSE
-      log_msg Unknown file type $ft, aborting conversion...
-  esac
+	# send stdin to a file we can test format for
+	cat > $tmpfile
+	ft=$(file -b $tmpfile | cut -d ' ' -f 1)
+	gs_in_file=$tmpfile
+	can_convert=$TRUE
+	case $ft in
+		ASCII)
+			can_convert=$FALSE
+			log_msg ASCII, abort conversion...
+			;;
+		PDF)
+			log_msg Converting from PDF to $gs_device
+			;;
+		PostScript)
+			log_msg Converting PostScript to $gs_device
+			;;
+		*)
+			can_convert=$FALSE
+			log_msg Unknown file type $ft, aborting conversion...
+	esac
 
-  if [ ${can_convert} -eq $TRUE ]
-  then
-    if [ "${af:-empty}" != "empty" ]
-    then
-      npages=$($gs -q -dNODISPLAY -c "($tmpfile) (r) file runpdfbegin pdfpagecount = quit")
-      printf "%7.2f\t%s:%s\n" "$npages" "$host" "$name" >> $af
-    fi
+	if [ ${can_convert} -eq $TRUE ] ; then
+	  if [ "${af:-empty}" != "empty" ] ; then
+	    npages=$($gs -q -dNODISPLAY -c "($tmpfile) (r) file runpdfbegin pdfpagecount = quit")
+	    printf "%7.2f\t%s:%s\n" "$npages" "$host" "$name" >> $af
+	  fi
 
-    $gs -q -dNOPROMPT -dNOPAUSE -dSAFER -dBATCH -dNOPAUSE -sDEVICE=$gs_device -sOutputFile=- $tmpfile -c quit
-  fi
-  exit $err_exit
+	  $gs -q -dNOPROMPT -dNOPAUSE -dSAFER -dBATCH -dNOPAUSE -sDEVICE=$gs_device -sOutputFile=- $tmpfile -c quit
+	fi
+	exit $err_exit
 }
 
 function version {
-  log_msg "$__basename $version - (linked as $__progname)"
+	log_msg "$__basename $version - (linked as $__progname)"
 }
 
 function usage {
-  # dispose of stdin data
-  if [ ! -t 0 ]
-  then
-    cat > /dev/null
-  fi
-  version
-  log_msg
-  opts="[-c] [-h host] [-i indent] [-l length] [-n name] [-w width] [acctfile]"
-  log_msg usage: $__progname $opts
-  log_msg
+	# dispose of stdin data
+	if [ ! -t 0 ] ; then
+	  cat > /dev/null
+	fi
+	version
+	log_msg
+	opts="[-c] [-h host] [-i indent] [-l length] [-n name] [-w width] [acctfile]"
+	log_msg usage: $__progname $opts
+	log_msg
 }
 
 function debug {
-  if [ $debug -eq $TRUE -o "${LPF_GS_DEBUG:-empty}" != "empty" ]
-  then
-    log_msg Variables:
-    log_msg $call
-    log_msg device=$gs_device
-    log_msg af=$af
-    log_msg ctrl=$ctrl
-    log_msg host=$host
-    log_msg gs=$gs
-    log_msg indent=$indent
-    log_msg length=$length
-    log_msg name=$name
-    log_msg width=$width
-    log_msg pid=$pid
-    log_msg cmd=$cmd
-    log_msg version=$version
-    log_msg
-  fi
+	if [ $debug -eq $TRUE -o "${LPF_GS_DEBUG:-empty}" != "empty" ] ; then
+	  log_msg Variables:
+	  log_msg $call
+	  log_msg device=$gs_device
+	  log_msg af=$af
+	  log_msg ctrl=$ctrl
+	  log_msg host=$host
+	  log_msg gs=$gs
+	  log_msg indent=$indent
+	  log_msg length=$length
+	  log_msg name=$name
+	  log_msg width=$width
+	  log_msg pid=$pid
+	  log_msg cmd=$cmd
+	  log_msg version=$version
+	  log_msg
+	fi
 }
 
 trap "rm -f ${tmpfile}" EXIT
@@ -227,8 +221,7 @@ trap "rm -f ${tmpfile}" EXIT
 trap "log_msg ${__progname} aborted by user;rm -f ${tmpfile};exit" INT
 
 has_gs_device=$(gs -h | grep $gs_device | wc -l)
-if [ $has_gs_device -eq 0 ]
-then
+if [ $has_gs_device -eq 0 ] ; then
   version
   log_msg
   log_msg "No such ghostscript device '$gs_device' (cf gs -h)"
@@ -237,71 +230,69 @@ then
   exit $err_exit
 fi
 
-if [ "${gs:-empty}" = "empty" ]
-then
+if [ "${gs:-empty}" = "empty" ] ; then
   version
   log_msg
   log_msg "Unable to find ghostscript."
   exit $err_exit
 fi
 
-while getopts :cdh:i:j:l:n:vw: opt;
-do
-  case ${opt} in
-    c)
-      ctrl=$TRUE
-      ;;
-    d)
-      debug=$TRUE
-      ;;
-    h)
-      host=${OPTARG}
-      ;;
-    i)
-      indent=${OPTARG}
-      ;;
-    j)
-      job=${OPTARG}
-      ;;
-    l)
-      length=${OPTARG}
-      ;;
-    n)
-      name=${OPTARG}
-      ;;
-    v)
-      cmd="version"
-      ;;
-    :)
-      log_msg "${__progname}: option requires an argument -- ${OPTARG}"
-      log_msg
-      cmd=abort
-      ;;
-    \?)
-      log_msg "${__progname}: invalid option -- ${OPTARG}"
-      log_msg
-      cmd=abort
-      ;;
-  esac
+while getopts :cdh:i:j:l:n:vw: opt ; do
+	case ${opt} in
+		c)
+			ctrl=$TRUE
+			;;
+		d)
+			debug=$TRUE
+			;;
+		h)
+			host=${OPTARG}
+			;;
+		i)
+			indent=${OPTARG}
+			;;
+		j)
+			job=${OPTARG}
+			;;
+		l)
+			length=${OPTARG}
+			;;
+		n)
+			name=${OPTARG}
+			;;
+		v)
+			cmd="version"
+			;;
+		:)
+			log_msg "${__progname}: option requires an argument -- ${OPTARG}"
+			log_msg
+			cmd=abort
+			;;
+		\?)
+			log_msg "${__progname}: invalid option -- ${OPTARG}"
+			log_msg
+			cmd=abort
+			;;
+	esac
 done
 shift $(( OPTIND - 1 ))
 # get remaining parameter as accounting file
 af=$@
 
 case $cmd in
-  print)
-    print
-    ;;
-  version)
-    version
-    ;;
-  usage)
-    usage
-    ;;
-  *)
-    usage
-    debug
-    exit $err_exit
-    ;;
+	print)
+		print
+		;;
+	version)
+		version
+		;;
+	usage)
+		usage
+		;;
+	*)
+		usage
+		debug
+		exit $err_exit
+		;;
 esac
 debug
