@@ -275,12 +275,12 @@ while getopts :cdh:i:j:l:n:vw: opt ; do
 			cmd="version"
 			;;
 		:)
-			log_msg "${__progname}: option requires an argument -- ${OPTARG}"
+			log_msg "$__progname: option requires an argument -- ${OPTARG}"
 			log_msg
 			cmd=abort
 			;;
 		\?)
-			log_msg "${__progname}: invalid option -- ${OPTARG}"
+			log_msg "$__progname: invalid option -- ${OPTARG}"
 			log_msg
 			cmd=abort
 			;;
