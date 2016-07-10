@@ -118,11 +118,13 @@ function log_msg {
 	fi
 }
 
-# create temp file
+# create temp files
 TMPFILE=`mktemp -q /tmp/$gs_device.XXXXXXXXXX` ||
   (log_msg "Unable to create tmp file ... aborting" ; exit 1)
+GSTMPFILE=`mktemp /tmp/$gs_device.gs.XXXXXX` ||
+  (log_msg "Unable to create ghostscript tmp file ... aborting" ; exit 1)
 
-trap "rm -f '${TMPFILE}'" EXIT
+trap "rm -f '${TMPFILE}' '${GSTMPFILE}'" EXIT
 trap "log_msg $__progname aborted by user;exit $err_exit" INT
 
 # command line parameters that will be passed in from lpd
@@ -167,15 +169,21 @@ function print {
 			log_msg Unknown file type $ft, aborting conversion...
 	esac
 
-	if [ ${can_convert} -eq $TRUE ] ; then
+	if [ $can_convert -eq $TRUE ] ; then
 	  if [ "${af:-empty}" != "empty" ] ; then
 	    npages=$($gs -q -dNODISPLAY -c "(${TMPFILE}) (r) file runpdfbegin pdfpagecount = quit")
 	    printf "%7.2f\t%s:%s\n" "$npages" "$host" "$name" >> $af
 	  fi
 
-	  $gs -q -dNOPROMPT -dNOPAUSE -dSAFER -dBATCH -dNOPAUSE -sDEVICE=$gs_device -sOutputFile=- $TMPFILE -c quit
+	  gs_success=0
+	  $gs -q -dNOPROMPT -dNOPAUSE -dSAFER -dBATCH -dNOPAUSE \
+	      -sDEVICE=$gs_device -sOutputFile=- "${TMPFILE}" -c quit \
+	      2>"${GSTMPFILE}"
+	  gs_success=$?
+	  log_msg $(cat "${GSTMPFILE}")
+	  rm "${GSTMPFILE}"
 	fi
-#	exit $err_exit
+	exit $gs_success
 }
 
 function version {
