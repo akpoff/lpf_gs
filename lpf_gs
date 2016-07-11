@@ -99,18 +99,19 @@ err_exit=1
 gs_device=$(basename "$__progname" '.if' | cut -d '_' -f 2)
 function log_msg {
 	msg="$@"
+	if [ -z "$msg" ] ; then
+		exit
+	fi
 	if [ ! -t 0 ] ; then
-		if [ "${msg:-empty}" != "empty" ] ; then
-			# sane date format but different from lpd
-			# date=$(date "+%Y-%m-%d %H:%M:%S")
+		# sane date format but different from lpd
+		# date=$(date "+%Y-%m-%d %H:%M:%S")
 
-			# format date like lpd
-			date=$(date "+%b %e %H:%M:%S")
+		# format date like lpd
+		date=$(date "+%b %e %H:%M:%S")
 
-			# send to stderr for logging
-			# lpd will handle logging
-			echo "$date $hostname $__progname[$pid]: ($job) $msg" >&2
-		fi
+		# send to stderr for logging
+		# lpd will handle logging
+		echo "$date $hostname $__progname[$pid]: ($job) $msg" >&2
 	else
 		# send to stdout to work with pipes
 		# when users call from cl
@@ -122,11 +123,14 @@ function log_msg {
 TMPFILE=`mktemp -q /tmp/$gs_device.XXXXXXXXXX` ||
 	(log_msg "Unable to create tmp file ... aborting" ; exit 1)
 ASERRFILE=`mktemp /tmp/$gs_device.as_err.XXXXXX` ||
-	(log_msg "Unable to create ghostscript tmp file ... aborting" ; exit 1)
+	(log_msg "Unable to create ghostscript tmp file ... aborting" ; \
+	 exit 1)
 ASTMPFILE=`mktemp /tmp/$gs_device.as.XXXXXX` ||
-	(log_msg "Unable to create ghostscript tmp file ... aborting" ; exit 1)
+	(log_msg "Unable to create ghostscript tmp file ... aborting" ; \
+	 exit 1)
 GSERRFILE=`mktemp /tmp/$gs_device.gs_err.XXXXXX` ||
-	(log_msg "Unable to create ghostscript tmp file ... aborting" ; exit 1)
+	(log_msg "Unable to create ghostscript tmp file ... aborting" ; \
+	 exit 1)
 
 trap "rm -f '${TMPFILE}' '${ASERRFILE}' '${ASTMPFILE}' '${GSERRFILE}'" EXIT
 trap "log_msg $__progname aborted by user;exit $err_exit" INT
@@ -158,20 +162,21 @@ function print {
 	cat > "${TMPFILE}"
 	can_convert=$TRUE
 	ft=$(file -b "${TMPFILE}")
-	log_msg $ft
 	if [ "$(echo $ft | grep text)" ] ; then
 		__as=$(basename "$as")
 		if [  "$__as" = "a2ps" ] ; then
-			log_msg Converting from ASCII to postscript using $__as
+			log_msg Converting from ASCII to postscript \
+				using $__as
 			__header="-B --center-title='${job}'"
-			$as -M letter $__header --output="${ASTMPFILE}" "${TMPFILE}" \
-			    2>"${ASERRFILE}"
+			$as -q -M letter $__header --output="${ASTMPFILE}" \
+			    "${TMPFILE}" 2>"${ASERRFILE}"
 			as_success=$?
 		elif [ "$__as" = "enscript" ] ; then
 			__header="${job} %W Page $% of $="
-			log_msg Converting from ASCII to postscript using $__as
-			$as -q --header="$__header" --output="${ASTMPFILE}" "${TMPFILE}" \
-			    2>"${ASERRFILE}"
+			log_msg Converting from ASCII to postscript \
+				using $__as
+			$as -q --header="$__header" --output="${ASTMPFILE}" \
+			    "${TMPFILE}" 2>"${ASERRFILE}"
 			as_success=$?
 		else
 			can_convert=$FALSE
@@ -191,23 +196,26 @@ function print {
 	fi
 
 	if [ $can_convert -eq $TRUE ] ; then
-		if [ "${af:-empty}" != "empty" ] ; then
+		if [ ! -z "$af" ] ; then
 			npages=$($gs -q -dNODISPLAY -c "(${TMPFILE}) (r) file runpdfbegin pdfpagecount = quit")
-			printf "%7.2f\t%s:%s\n" "$npages" "$host" "$name" >> $af
+			printf "%7.2f\t%s:%s\n" "$npages" "$host" "$name" \
+			       >> $af
 		fi
 
 		gs_success=0
 		if [ -e "${__dirname}/gs_init.ps" ] ; then
-			# if there's a gs_init file prepend it to the processing queue
+			# if there's a gs_init file prepend it to the
+			# processing queue
 			gs_init="${__dirname}/gs_init.ps"
-			$gs -q -dNOPROMPT -dNOPAUSE -dSAFER -dBATCH -dNOPAUSE \
-			    -sDEVICE=${gs_device} -sOutputFile=- "${gs_init}" \
-			    "${TMPFILE}" -c quit 2>"${GSERRFILE}"
+			$gs -q -dNOPROMPT -dNOPAUSE -dSAFER -dBATCH \
+			    -dNOPAUSE -sDEVICE=${gs_device} -sOutputFile=- \
+			    "${gs_init}" "${TMPFILE}" -c quit \
+			    2>"${GSERRFILE}"
 			gs_success=${?}
 		else
-			$gs -q -dNOPROMPT -dNOPAUSE -dSAFER -dBATCH -dNOPAUSE \
-			    -sDEVICE=${gs_device} -sOutputFile=- "${TMPFILE}" -c quit \
-			    2>"${GSERRFILE}"
+			$gs -q -dNOPROMPT -dNOPAUSE -dSAFER -dBATCH \
+			    -dNOPAUSE -sDEVICE=${gs_device} -sOutputFile=- \
+			    "${TMPFILE}" -c quit 2>"${GSERRFILE}"
 			gs_success=${?}
 		fi
 		log_msg $(cat "${GSERRFILE}")
@@ -227,7 +235,8 @@ function usage {
 	fi
 	version
 	log_msg
-	opts="[-c] [-h host] [-i indent] [-l length] [-n name] [-w width] [acctfile]"
+	opts="[-c] [-h host] [-i indent] [-l length] [-n name] [-w width]"
+	opts="$opts [acctfile]"
 	log_msg usage: $__progname $opts
 	log_msg
 }
@@ -262,7 +271,7 @@ if [ $has_gs_device -eq 0 ] ; then
 	exit $err_exit
 fi
 
-if [ "${gs:-empty}" = "empty" ] ; then
+if [ -z "$gs" ] ; then
 	version
 	log_msg
 	log_msg "Unable to find ghostscript."
@@ -296,12 +305,13 @@ while getopts :cdh:i:j:l:n:vw: opt ; do
 			cmd="version"
 			;;
 		:)
-			log_msg "$__progname: option requires an argument -- ${OPTARG}"
+			log_msg $__progname: option requires an argument \
+				-- ${OPTARG}
 			log_msg
 			cmd=abort
 			;;
 		\?)
-			log_msg "$__progname: invalid option -- ${OPTARG}"
+			log_msg $__progname: invalid option -- ${OPTARG}
 			log_msg
 			cmd=abort
 			;;
