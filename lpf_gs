@@ -176,17 +176,18 @@ function print {
 			as_success=$?
 		else
 			can_convert=$FALSE
-			log_msg ASCII, abort conversion...
-			exit 1
+			log_msg No ASCII converter found, abort conversion...
+			exit $err_exit
 		fi
 		if [ $as_success -eq $FALSE ] ; then
 			log_msg $(cat "${ASERRFILE}")
-			exit $as_success
+			exit $err_exit
 		else
 			mv "${ASTMPFILE}" "${GSTMPFILE}"
 			mv_success=$?
 			if [ $mv_success -eq $FALSE ] ; then
-				exit $mv_success
+				log_msg Unable to mv "${ASTMPFILE}" "${GSTMPFILE}"
+				exit $err_exit
 			fi
 		fi
 	elif [ "$(echo $ft | egrep 'PDF|PostScript')" ] ; then
@@ -194,11 +195,13 @@ function print {
 		mv "${TMPFILE}" "${GSTMPFILE}"
 		mv_success=$?
 		if [ $mv_success -eq $FALSE ] ; then
-			exit $mv_success
+			log_msg Unable to mv "${ASTMPFILE}" "${GSTMPFILE}"
+			exit $err_exit
 		fi
 	else
 		can_convert=$FALSE
 		log_msg Unknown file type "($ft)", aborting conversion...
+		exit $err_exit
 	fi
 
 	if [ $can_convert -eq $TRUE ] ; then
