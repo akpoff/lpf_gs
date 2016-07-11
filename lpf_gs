@@ -120,19 +120,18 @@ function log_msg {
 }
 
 # create temp files
-TMPFILE=`mktemp -q /tmp/$gs_device.XXXXXXXXXX` ||
-	(log_msg "Unable to create tmp file ... aborting" ; exit 1)
-ASERRFILE=`mktemp /tmp/$gs_device.as_err.XXXXXX` ||
-	(log_msg "Unable to create ghostscript tmp file ... aborting" ; \
+TMPFILE=`mktemp -q /tmp/lpf_${gs_device}.XXXXXXXXXX` ||
+	(log_msg "Unable to create $__progname tmp file ... aborting" ; exit 1)
+ASERRFILE=`mktemp /tmp/lpf_${gs_device}.as_err.XXXXXXXXXX` ||
+	(log_msg "Unable to create ASCII conversion err file ... aborting" ; \
 	 exit 1)
-ASTMPFILE=`mktemp /tmp/$gs_device.as.XXXXXX` ||
-	(log_msg "Unable to create ghostscript tmp file ... aborting" ; \
+ASTMPFILE="${TMPFILE}.as"
+GSERRFILE=`mktemp /tmp/lpf_${gs_device}.gs_err.XXXXXXXXXX` ||
+	(log_msg "Unable to create ghostscript err file ... aborting" ; \
 	 exit 1)
-GSERRFILE=`mktemp /tmp/$gs_device.gs_err.XXXXXX` ||
-	(log_msg "Unable to create ghostscript tmp file ... aborting" ; \
-	 exit 1)
+GSTMPFILE="${TMPFILE}.gs"
 
-trap "rm -f '${TMPFILE}' '${ASERRFILE}' '${ASTMPFILE}' '${GSERRFILE}'" EXIT
+trap "rm -f '${TMPFILE}' '${ASERRFILE}' '${ASTMPFILE}' '${GSERRFILE}' '${GSTMPFILE}'" EXIT
 trap "log_msg $__progname aborted by user;exit $err_exit" INT
 
 # command line parameters that will be passed in from lpd
@@ -181,15 +180,25 @@ function print {
 		else
 			can_convert=$FALSE
 			log_msg ASCII, abort conversion...
+			exit 1
 		fi
 		if [ $as_success -eq $FALSE ] ; then
 			log_msg $(cat "${ASERRFILE}")
 			exit $as_success
 		else
-			mv "${ASTMPFILE}" "${TMPFILE}"
+			mv "${ASTMPFILE}" "${GSTMPFILE}"
+			mv_success=$?
+			if [ $mv_success -eq $FALSE ] ; then
+				exit $mv_success
+			fi
 		fi
 	elif [ "$(echo $ft | egrep 'PDF|PostScript')" ] ; then
 		log_msg Converting from PDF to $gs_device
+		mv "${TMPFILE}" "${GSTMPFILE}"
+		mv_success=$?
+		if [ $mv_success -eq $FALSE ] ; then
+			exit $mv_success
+		fi
 	else
 		can_convert=$FALSE
 		log_msg Unknown file type "($ft)", aborting conversion...
@@ -197,7 +206,7 @@ function print {
 
 	if [ $can_convert -eq $TRUE ] ; then
 		if [ ! -z "$af" ] ; then
-			npages=$($gs -q -dNODISPLAY -c "(${TMPFILE}) (r) file runpdfbegin pdfpagecount = quit")
+			npages=$($gs -q -dNODISPLAY -c "(${GSTMPFILE}) (r) file runpdfbegin pdfpagecount = quit")
 			printf "%7.2f\t%s:%s\n" "$npages" "$host" "$name" \
 			       >> $af
 		fi
@@ -209,13 +218,13 @@ function print {
 			gs_init="${__dirname}/gs_init.ps"
 			$gs -q -dNOPROMPT -dNOPAUSE -dSAFER -dBATCH \
 			    -dNOPAUSE -sDEVICE=${gs_device} -sOutputFile=- \
-			    "${gs_init}" "${TMPFILE}" -c quit \
+			    "${gs_init}" "${GSTMPFILE}" -c quit \
 			    2>"${GSERRFILE}"
 			gs_success=${?}
 		else
 			$gs -q -dNOPROMPT -dNOPAUSE -dSAFER -dBATCH \
 			    -dNOPAUSE -sDEVICE=${gs_device} -sOutputFile=- \
-			    "${TMPFILE}" -c quit 2>"${GSERRFILE}"
+			    "${GSTMPFILE}" -c quit 2>"${GSERRFILE}"
 			gs_success=${?}
 		fi
 		log_msg $(cat "${GSERRFILE}")
@@ -242,7 +251,7 @@ function usage {
 }
 
 function debug {
-	if [ $debug -eq $TRUE -o "${LPF_GS_DEBUG:-empty}" != "empty" ] ; then
+	if [ $debug -eq $TRUE -o ! -z "$LPF_GS_DEBUG" ] ; then
 		log_msg Variables:
 		log_msg $call
 		log_msg device=$gs_device
