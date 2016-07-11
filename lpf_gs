@@ -205,10 +205,10 @@ function print {
 	fi
 
 	if [ $can_convert -eq $TRUE ] ; then
-		# if there's a gs_init file prepend it to the processing
-		# queue gs fails if you leave an extra space from an empty
-		# variable have to use an if/else to call gs correctly
-		# with/without gs_init.ps
+		# If there's a gs_init file prepend it to the processing queue.
+		# gs fails if you leave an extra space from an empty variable.
+		# Better to use an if/else to call gs correctly with/without
+		# gs_init.ps
 		if [ -e "${__dirname}/gs_init.ps" ] ; then
 			gs_init="${__dirname}/gs_init.ps"
 			$gs -q -dNOPROMPT -dNOPAUSE -dSAFER -dBATCH \
