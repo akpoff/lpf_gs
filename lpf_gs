@@ -205,15 +205,11 @@ function print {
 	fi
 
 	if [ $can_convert -eq $TRUE ] ; then
-		if [ ! -z "$af" ] ; then
-			npages=$($gs -q -dNODISPLAY -c "(${GSTMPFILE}) (r) file runpdfbegin pdfpagecount = quit")
-			printf "%7.2f\t%s:%s\n" "$npages" "$host" "$name" \
-			       >> $af
-		fi
-
+		# if there's a gs_init file prepend it to the processing
+		# queue gs fails if you leave an extra space from an empty
+		# variable have to use an if/else to call gs correctly
+		# with/without gs_init.ps
 		if [ -e "${__dirname}/gs_init.ps" ] ; then
-			# if there's a gs_init file prepend it to the
-			# processing queue
 			gs_init="${__dirname}/gs_init.ps"
 			$gs -q -dNOPROMPT -dNOPAUSE -dSAFER -dBATCH \
 			    -dNOPAUSE -sDEVICE=${gs_device} -sOutputFile=- \
@@ -226,10 +222,26 @@ function print {
 			    "${GSTMPFILE}" -c quit 2>"${GSERRFILE}"
 			gs_success=$?
 		fi
-		log_msg $(cat "${GSERRFILE}")
-		rm "${GSERRFILE}"
+		if [ $gs_success -ne $TRUE ] ; then
+			log_msg $(cat "${GSERRFILE}")
+			exit $err_exit
+		fi
+
+		if [ ! -z "$af" ] ; then
+			action="(${GSTMPFILE}) (r) file runpdfbegin pdfpagecount = quit"
+			npages=$($gs -q -dNODISPLAY -c "$action" 2> "${GSERRFILE}")
+			if [ $? -eq $TRUE ] ; then
+				printf "%7.2f\t%s:%s\n" "$npages" "$host" "$name" \
+				       >> $af
+			else
+				log_msg Print job completed but \
+					unable to count pages for accounting file
+				log_msg $(cat "${GSERRFILE}")
+				log_msg This error often arises when converting \
+					ASCII to postscript
+			fi
+		fi
 	fi
-	exit $gs_success
 }
 
 function version {
