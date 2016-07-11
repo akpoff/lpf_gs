@@ -121,14 +121,11 @@ function log_msg {
 
 # create temp files
 TMPFILE=`mktemp -q /tmp/lpf_${gs_device}.XXXXXXXXXX` ||
-	(log_msg "Unable to create $__progname tmp file ... aborting" ; exit 1)
-ASERRFILE=`mktemp /tmp/lpf_${gs_device}.as_err.XXXXXXXXXX` ||
-	(log_msg "Unable to create ASCII conversion err file ... aborting" ; \
-	 exit 1)
+	(log_msg "Unable to create $__progname tmp file ... aborting" ; \
+	 exit $err_exit)
+ASERRFILE="${TMPFILE}.as_err"
 ASTMPFILE="${TMPFILE}.as"
-GSERRFILE=`mktemp /tmp/lpf_${gs_device}.gs_err.XXXXXXXXXX` ||
-	(log_msg "Unable to create ghostscript err file ... aborting" ; \
-	 exit 1)
+GSERRFILE="${TMPFILE}.gs_err"
 GSTMPFILE="${TMPFILE}.gs"
 
 trap "rm -f '${TMPFILE}' '${ASERRFILE}' '${ASTMPFILE}' '${GSERRFILE}' '${GSTMPFILE}'" EXIT
