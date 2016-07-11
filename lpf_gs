@@ -48,13 +48,13 @@
 # system printcap(5) file specifying the accounting filter.
 #
 # lp|local line printer:\
-# 	:af=/var/log/lpd-acct:\		# accounting file (optional)
-# 	:if=/usr/local/bin/lpf_ljet4:\	# a link to lpf_gs
-# 	:lf=/var/log/lpd-errs:\		# error log
-# 	:lp=9100@192.168.68.10:\        # printer raw port
-# 	:mx#0:\				# turn-off max file size
-# 	:sd=/var/spool/output/lpd:\	# spool directory
-# 	:sh:				# suppress burst-page header
+#	:af=/var/log/lpd-acct:\		# accounting file (optional)
+#	:if=/usr/local/bin/lpf_ljet4:\	# a link to lpf_gs
+#	:lf=/var/log/lpd-errs:\		# error log
+#	:lp=9100@192.168.68.10:\	# printer raw port
+#	:mx#0:\				# turn-off max file size
+#	:sd=/var/spool/output/lpd:\	# spool directory
+#	:sh:				# suppress burst-page header
 #
 # The definition above will convert the input print job to HP Laser
 # Jet 4 PCL which many printers will accept.
@@ -100,17 +100,17 @@ gs_device=$(basename "$__progname" '.if' | cut -d '_' -f 2)
 function log_msg {
 	msg="$@"
 	if [ ! -t 0 ] ; then
-	    if [ "${msg:-empty}" != "empty" ] ; then
-		# sane date format but different from lpd
-		# date=$(date "+%Y-%m-%d %H:%M:%S")
+		if [ "${msg:-empty}" != "empty" ] ; then
+			# sane date format but different from lpd
+			# date=$(date "+%Y-%m-%d %H:%M:%S")
 
-		# format date like lpd
-		date=$(date "+%b %e %H:%M:%S")
+			# format date like lpd
+			date=$(date "+%b %e %H:%M:%S")
 
-		# send to stderr for logging
-		# lpd will handle logging
-		echo "$date $hostname $__progname[$pid]: ($job) $msg" >&2
-	    fi
+			# send to stderr for logging
+			# lpd will handle logging
+			echo "$date $hostname $__progname[$pid]: ($job) $msg" >&2
+		fi
 	else
 		# send to stdout to work with pipes
 		# when users call from cl
@@ -120,9 +120,9 @@ function log_msg {
 
 # create temp files
 TMPFILE=`mktemp -q /tmp/$gs_device.XXXXXXXXXX` ||
-    (log_msg "Unable to create tmp file ... aborting" ; exit 1)
+	(log_msg "Unable to create tmp file ... aborting" ; exit 1)
 GSTMPFILE=`mktemp /tmp/$gs_device.gs.XXXXXX` ||
-    (log_msg "Unable to create ghostscript tmp file ... aborting" ; exit 1)
+	(log_msg "Unable to create ghostscript tmp file ... aborting" ; exit 1)
 
 trap "rm -f '${TMPFILE}' '${GSTMPFILE}'" EXIT
 trap "log_msg $__progname aborted by user;exit $err_exit" INT
@@ -170,27 +170,27 @@ function print {
 	esac
 
 	if [ $can_convert -eq $TRUE ] ; then
-	    if [ "${af:-empty}" != "empty" ] ; then
-		npages=$($gs -q -dNODISPLAY -c "(${TMPFILE}) (r) file runpdfbegin pdfpagecount = quit")
-		printf "%7.2f\t%s:%s\n" "$npages" "$host" "$name" >> $af
-	    fi
+		if [ "${af:-empty}" != "empty" ] ; then
+			npages=$($gs -q -dNODISPLAY -c "(${TMPFILE}) (r) file runpdfbegin pdfpagecount = quit")
+			printf "%7.2f\t%s:%s\n" "$npages" "$host" "$name" >> $af
+		fi
 
-	    gs_success=0
-	    if [ -e "${__dirname}/gs_init.ps" ] ; then
-		# if there's a gs_init file prepend it to the processing queue
-		gs_init="${__dirname}/gs_init.ps"
-		$gs -q -dNOPROMPT -dNOPAUSE -dSAFER -dBATCH -dNOPAUSE \
-		    -sDEVICE=${gs_device} -sOutputFile=- "${gs_init}" \
-		    "${TMPFILE}" -c quit 2>"${GSTMPFILE}"
-		gs_success=${?}
-	    else
-		    $gs -q -dNOPROMPT -dNOPAUSE -dSAFER -dBATCH -dNOPAUSE \
-			-sDEVICE=${gs_device} -sOutputFile=- "${TMPFILE}" -c quit \
-			2>"${GSTMPFILE}"
-		    gs_success=${?}
-	    fi
-	    log_msg $(cat "${GSTMPFILE}")
-	    rm "${GSTMPFILE}"
+		gs_success=0
+		if [ -e "${__dirname}/gs_init.ps" ] ; then
+			# if there's a gs_init file prepend it to the processing queue
+			gs_init="${__dirname}/gs_init.ps"
+			$gs -q -dNOPROMPT -dNOPAUSE -dSAFER -dBATCH -dNOPAUSE \
+			    -sDEVICE=${gs_device} -sOutputFile=- "${gs_init}" \
+			    "${TMPFILE}" -c quit 2>"${GSTMPFILE}"
+			gs_success=${?}
+		else
+			$gs -q -dNOPROMPT -dNOPAUSE -dSAFER -dBATCH -dNOPAUSE \
+			    -sDEVICE=${gs_device} -sOutputFile=- "${TMPFILE}" -c quit \
+			    2>"${GSTMPFILE}"
+			gs_success=${?}
+		fi
+		log_msg $(cat "${GSTMPFILE}")
+		rm "${GSTMPFILE}"
 	fi
 	exit $gs_success
 }
@@ -202,7 +202,7 @@ function version {
 function usage {
 	# dispose of stdin data
 	if [ ! -t 0 ] ; then
-	    cat > /dev/null
+		cat > /dev/null
 	fi
 	version
 	log_msg
@@ -213,39 +213,39 @@ function usage {
 
 function debug {
 	if [ $debug -eq $TRUE -o "${LPF_GS_DEBUG:-empty}" != "empty" ] ; then
-	    log_msg Variables:
-	    log_msg $call
-	    log_msg device=$gs_device
-	    log_msg af=$af
-	    log_msg ctrl=$ctrl
-	    log_msg host=$host
-	    log_msg gs=$gs
-	    log_msg indent=$indent
-	    log_msg length=$length
-	    log_msg name=$name
-	    log_msg width=$width
-	    log_msg pid=$pid
-	    log_msg cmd=$cmd
-	    log_msg version=$version
-	    log_msg
+		log_msg Variables:
+		log_msg $call
+		log_msg device=$gs_device
+		log_msg af=$af
+		log_msg ctrl=$ctrl
+		log_msg host=$host
+		log_msg gs=$gs
+		log_msg indent=$indent
+		log_msg length=$length
+		log_msg name=$name
+		log_msg width=$width
+		log_msg pid=$pid
+		log_msg cmd=$cmd
+		log_msg version=$version
+		log_msg
 	fi
 }
 
 has_gs_device=$(gs -h | grep $gs_device | wc -l)
 if [ $has_gs_device -eq 0 ] ; then
-    version
-    log_msg
-    log_msg "No such ghostscript device '$gs_device' (cf gs -h)"
-    log_msg
-    log_msg "Execute 'gs -h' to see a list of supported devices."
-    exit $err_exit
+	version
+	log_msg
+	log_msg "No such ghostscript device '$gs_device' (cf gs -h)"
+	log_msg
+	log_msg "Execute 'gs -h' to see a list of supported devices."
+	exit $err_exit
 fi
 
 if [ "${gs:-empty}" = "empty" ] ; then
-    version
-    log_msg
-    log_msg "Unable to find ghostscript."
-    exit $err_exit
+	version
+	log_msg
+	log_msg "Unable to find ghostscript."
+	exit $err_exit
 fi
 
 while getopts :cdh:i:j:l:n:vw: opt ; do
