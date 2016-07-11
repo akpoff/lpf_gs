@@ -211,7 +211,6 @@ function print {
 			       >> $af
 		fi
 
-		gs_success=0
 		if [ -e "${__dirname}/gs_init.ps" ] ; then
 			# if there's a gs_init file prepend it to the
 			# processing queue
@@ -220,12 +219,12 @@ function print {
 			    -dNOPAUSE -sDEVICE=${gs_device} -sOutputFile=- \
 			    "${gs_init}" "${GSTMPFILE}" -c quit \
 			    2>"${GSERRFILE}"
-			gs_success=${?}
+			gs_success=$?
 		else
 			$gs -q -dNOPROMPT -dNOPAUSE -dSAFER -dBATCH \
 			    -dNOPAUSE -sDEVICE=${gs_device} -sOutputFile=- \
 			    "${GSTMPFILE}" -c quit 2>"${GSERRFILE}"
-			gs_success=${?}
+			gs_success=$?
 		fi
 		log_msg $(cat "${GSERRFILE}")
 		rm "${GSERRFILE}"
