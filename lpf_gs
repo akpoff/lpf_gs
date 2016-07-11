@@ -121,10 +121,12 @@ function log_msg {
 # create temp files
 TMPFILE=`mktemp -q /tmp/$gs_device.XXXXXXXXXX` ||
 	(log_msg "Unable to create tmp file ... aborting" ; exit 1)
+ASTMPFILE=`mktemp /tmp/$gs_device.as.XXXXXX` ||
+	(log_msg "Unable to create ghostscript tmp file ... aborting" ; exit 1)
 GSTMPFILE=`mktemp /tmp/$gs_device.gs.XXXXXX` ||
 	(log_msg "Unable to create ghostscript tmp file ... aborting" ; exit 1)
 
-trap "rm -f '${TMPFILE}' '${GSTMPFILE}'" EXIT
+trap "rm -f '${TMPFILE}' '${ASTMPFILE}' '${GSTMPFILE}'" EXIT
 trap "log_msg $__progname aborted by user;exit $err_exit" INT
 
 # command line parameters that will be passed in from lpd
@@ -133,7 +135,7 @@ af=""		  # accounting file path
 ctrl=$FALSE	  # whether to pass control characters literally
 host="(null)"	  # sending host
 indent=0	  # how much to indent
-job=""		  # job name
+job="stdin"	  # job name
 length=66	  # page length (default from lpf.c)
 name=""		  # user who started job
 width=132	  # page width (default from lpf.c)
@@ -144,30 +146,40 @@ FALSE=1
 call="$0 $@"
 cmd="print"	  # options: abort | print | usage | version
 debug=$FALSE
-gs=$(which gs)
+as=$(which a2ps 2>/dev/null || which  enscript 2>/dev/null)
+gs=$(which gs 2>/dev/null)
 version="1.0"
 
 # does the real work
 function print {
 	# send stdin to a file we can test format for
 	cat > "${TMPFILE}"
-	ft=$(file -b "${TMPFILE}" | cut -d ' ' -f 1)
 	can_convert=$TRUE
-	case $ft in
-		ASCII)
+	ft=$(file -b "${TMPFILE}")
+	log_msg $ft
+	if [ "$(echo $ft | grep text)" ] ; then
+		__as=$(basename "$as")
+		if [  "$__as" = "a2ps" ] ; then
+			log_msg Converting from ASCII to ps using a2ps
+			__header="-B --center-title='${job}'"
+			$as -M letter $__header --output="${ASTMPFILE}" "${TMPFILE}"
+			mv "${ASTMPFILE}" "${TMPFILE}"
+		elif [ "$__as" = "enscript" ] ; then
+			__header="${job} %W Page $% of $="
+			log_msg Converting from ASCII to ps using enscript
+			log_msg $as --header="$__header" --output="${ASTMPFILE}" "${TMPFILE}"
+			$as --header="$__header" --output="${ASTMPFILE}" "${TMPFILE}"
+			mv "${ASTMPFILE}" "${TMPFILE}"
+		else
 			can_convert=$FALSE
 			log_msg ASCII, abort conversion...
-			;;
-		PDF)
-			log_msg Converting from PDF to $gs_device
-			;;
-		PostScript)
-			log_msg Converting PostScript to $gs_device
-			;;
-		*)
-			can_convert=$FALSE
-			log_msg Unknown file type $ft, aborting conversion...
-	esac
+		fi
+	elif [ "$(echo $ft | egrep 'PDF|PostScript')" ] ; then
+		log_msg Converting from PDF to $gs_device
+	else
+		can_convert=$FALSE
+		log_msg Unknown file type "($ft)", aborting conversion...
+	fi
 
 	if [ $can_convert -eq $TRUE ] ; then
 		if [ "${af:-empty}" != "empty" ] ; then
