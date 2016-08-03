@@ -21,7 +21,7 @@
 # or text file via stdin and converts it to an output format based on
 # the calling name of the program using ghostscript. lpf_gs is based
 # on the default lpd(8) accounting filter lpf, though written in SH(1)
-# rather than c.
+# rather than C.
 #
 # The calling name must be in the form of lpf_<device> where <device>
 # is an output device known by ghostscript.
@@ -151,10 +151,12 @@ debug=$FALSE
 as=$(which a2ps 2>/dev/null || which enscript 2>/dev/null)
 gs=$(which gs 2>/dev/null)
 version="1.0"
+gs_init="${__dirname}/gs_init.ps"
 
 # does the real work
 function print {
-	# send stdin to a file we can test format for
+	# send stdin to a file we can check format to see whether
+	# we can print it
 	cat > "${TMPFILE}"
 	can_convert=$TRUE
 	ft=$(file -b "${TMPFILE}")
@@ -209,8 +211,7 @@ function print {
 		# gs fails if you leave an extra space from an empty variable.
 		# Better to use an if/else to call gs correctly with/without
 		# gs_init.ps
-		if [ -e "${__dirname}/gs_init.ps" ] ; then
-			gs_init="${__dirname}/gs_init.ps"
+		if [ -e "${gs_init}" ] ; then
 			$gs -q -dNOPROMPT -dNOPAUSE -dSAFER -dBATCH \
 			    -dNOPAUSE -sDEVICE=${gs_device} -sOutputFile=- \
 			    "${gs_init}" "${GSTMPFILE}" -c quit \
@@ -281,6 +282,13 @@ function debug {
 	fi
 }
 
+if [ ! -f "$gs" ] ; then
+	log_msg "Ghostscript not installed."
+	log_msg
+	log_msg "Please install Ghostscript."
+	exit $err_exit
+fi
+
 has_gs_device=$(gs -h | grep $gs_device | wc -l)
 if [ $has_gs_device -eq 0 ] ; then
 	version
@@ -323,6 +331,9 @@ while getopts :cdh:i:j:l:n:vw: opt ; do
 			;;
 		v)
 			cmd="version"
+			;;
+		w)
+			width=${OPTARG}
 			;;
 		:)
 			log_msg $__progname: option requires an argument \
