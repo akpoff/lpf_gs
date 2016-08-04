@@ -190,9 +190,8 @@ function usage {
 		cat > /dev/null
 	fi
 	version
-	log_msg
-	opts="[-c] [-h host] [-i indent] [-l length] [-n name] [-w width]"
-	opts="$opts [acctfile]"
+	log_msg ""
+	opts="[-c] [-h host] [-i indent] [-l length] [-n name] [-w width] [acctfile]"
 	log_msg usage: $__progname $opts
 	log_msg
 }
@@ -216,6 +215,11 @@ function debug {
 		log_msg
 	fi
 }
+
+if [ $__progname == $__basename ] ; then
+	usage
+	exit 0
+fi
 
 if [ ! -f "$gs" ] ; then
 	log_msg "Ghostscript not installed."
