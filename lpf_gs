@@ -19,75 +19,10 @@
 #
 # lpf_gs is an lpd(8) accounting filter that takes a PostScript, PDF
 # or text file via stdin and converts it to an output format based on
-# the calling name of the program using ghostscript. lpf_gs is based
-# on the default lpd(8) accounting filter lpf, though written in SH(1)
-# rather than C.
+# the calling name of the program using Ghostscript. Accouting
+# information is logged to acct-name.
 #
-# The calling name must be in the form of lpf_<device> where <device>
-# is an output device known by ghostscript.
-#
-# Using the calling name is necessary because printcap(5) definitions
-# only allow specifying the accounting filter path and name. The few
-# parameters sent to the filter are specified and sent by lpd(8) Using
-# the calling name to specify the output device works around this
-# limitation.
-#
-# In most cases just a couple of links are required. Most printers
-# accept one or more of just a few printer-control languages (PCL) or
-# page-description languages (PDL).
-#
-# The most common are:
-#  ASCII + control flow (dot-matrix and line printers)
-#  PCL (typically PCL3 - PCL6)
-#  PostScript
-#
-# Check your printer manual for details about which PCLs or PDLs your
-# printer accepts.
-#
-# To use an lpd(8) definition with lpf_gs you'll need an entry in the
-# system printcap(5) file specifying the accounting filter.
-#
-# lp|local line printer:\
-#	:af=/var/log/lpd-acct:\		# accounting file (optional)
-#	:if=/usr/local/bin/lpf_ljet4:\	# a link to lpf_gs
-#	:lf=/var/log/lpd-errs:\		# error log
-#	:lp=9100@192.168.68.10:\	# printer raw port
-#	:mx#0:\				# turn-off max file size
-#	:sd=/var/spool/output/lpd:\	# spool directory
-#	:sh:				# suppress burst-page header
-#
-# The definition above will convert the input print job to HP Laser
-# Jet 4 PCL which many printers will accept.
-#
-# The "lp:9100@192.168.68.10" line directs lpd(8) to send the output
-# of the accounting filter to port 9100 on the remote system. Port
-# 9100 is a common port for printers to listen for raw streams. Port
-# 515 is the default port for lpd(8) services which may have their own
-# accounting filters which may convert the file in unexpected ways.
-#
-# Use a remote lpd only when you're sure the remote lpd(8) can process
-# the file and use lpr(8) with an appropriate printcap(5) entry.
-#
-# A list of available output devices can be found by executing gs -h
-#
-# E.g., ln -s /usr/local/bin/lpf_gs /usr/local/bin/lpf_ljet4 creates a
-# link to lpf_gs that converts from postscript to laserjet4 PCL.
-#
-# In addition to converting input formats, as an accounting filter,
-# lpf_gs logs accounting information if given an accounting file to
-# log to.
-#
-# BUGS:
-# lpd(8) accepts the following return codes:
-# -1 non-recoverable error
-#  0 success
-#  1 try again
-#  2 success but with some errors
-#
-# The exit command in SH(1) only allows values ranging from 0 - 255.
-# lpf_gs exits with 1 for all error conditions and prints an error
-# message to stderr. However, this doesn't seem to be a problem.
-# lpd(8) tries 3 times and aborts if it doesn't receive 0 or 2.
+# See lpf_gs(1) for more details.
 #
 
 __basename="lpf_gs"
@@ -100,7 +35,7 @@ gs_device=$(basename "$__progname" '.if' | cut -d '_' -f 2)
 function log_msg {
 	msg="$@"
 	if [ -z "$msg" ] ; then
-		exit
+		return 0
 	fi
 	if [ ! -t 0 ] ; then
 		# sane date format but different from lpd
