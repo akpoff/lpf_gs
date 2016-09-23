@@ -100,7 +100,9 @@ Use a remote lpd(8) only when you're sure the remote server can process the
 file and use lpr(8) with an appropriate printcap(5) entry.
 A list of available output devices can be found by executing gs -h
 E.g.,
-ln -s /usr/local/bin/lpf_gs /usr/local/bin/lpf_pxlmono
+```
+  ln -s /usr/local/bin/lpf_gs /usr/local/bin/lpf_pxlmono
+```
 creates a link to lpf_gs that converts from postscript to LaserJet4 PCL.
 In addition to converting input formats, as an accounting filter, lpf_gs logs
 accounting information if given an accounting file to log to.
@@ -123,10 +125,12 @@ The lpf_gs utility was written by Aaron Poffenberger <akp@hypernote.com>.
 BUGS
 
 lpd(8) accepts the following return codes:
+```
  -1 non-recoverable error
  0 success
  1 try again
  2 success but with some errors
+```
 
 The exit command in sh(1) only allows values ranging from 0 - 255. lpf_gs exits
 with 1 for all error conditions and prints an error message to stderr. However,
