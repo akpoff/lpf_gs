@@ -68,15 +68,17 @@ EXIT STATUS
 
 lpf_gs utility exits with one of the following values:
 
-0
+```
+ 0
     lpf_gs printed successfully.
-1
+ 1
     Errors were detected. Try again.
+```
 
 EXAMPLES
 
-To use an lpd(8) definition with lpf_gs you'll need an entry in the system 
-printcap(5) file specifying the accounting filter.
+To use an lpd(8) definition with lpf_gs you'll need an entry in the
+system printcap(5) file specifying the accounting filter.
 
 ```
   lp|local line printer:\
@@ -111,6 +113,7 @@ DIAGNOSTICS
 
 lpf_gs depends on Ghostscript (gs(1)) to work. lpf_gs will fail if Ghostscript
 cannot be found.
+
 lpf_gs will check whether gs(1) supports the device specified in the name of
 the symlink and will fail if the device is not supported.
 
