@@ -118,7 +118,7 @@ gs(1), lpq(1), lprm(1), pr(1), symlink(2), printcap(5), lpc(8), lpd(8)
 
 AUTHORS
 
-The lpf_gs utility was written by Aaron Poffenbreger <akp@hypernote.com>.
+The lpf_gs utility was written by Aaron Poffenberger <akp@hypernote.com>.
 
 BUGS
 
