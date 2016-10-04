@@ -11,12 +11,13 @@ lpf_gs [-cdhijlnvw] [-h host] [-i indent] [-j job] [-l length] -n user [-w
 
 DESCRIPTION
 
-lpf_gs is an lpd(8) accounting filter that takes a PostScript, PDF or text file
-via stdin and converts it to an output format based on the calling name of the
-program using Ghostscript. Accouting information is logged to acct-name.
-lpf_gs is based on the default lpd(8) accounting filter lpf, though written in 
-sh(1) rather than C.
-The options are as follows:
+lpf_gs is an lpd(8) accounting filter that takes a PostScript, PDF or
+text file via stdin and converts it to an output format based on the
+calling name of the program using Ghostscript. Accouting information
+is logged to acct-name.
+
+lpf_gs is based on the default lpd(8) accounting filter lpf, though
+written in sh(1) rather than C. The options are as follows:
 
 ```
  -c
