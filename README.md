@@ -43,17 +43,28 @@ CREATING ACCOUNTING FILTERS
 
 Accounting filters are created by making a symlink to lpf_gs and then
 setting the text filter to the name of the file created as a symlink
-to lpf_gs. The calling name of the filter must be in the form of
-lpf_device where device is an output device known by Ghostscript.
-E.g., lpf_pxlmono. Using the calling name is necessary because
+to lpf_gs.
+
+The calling name of the filter must be in the form of lpf_device where
+device is an output device known by Ghostscript. E.g., lpf_pxlmono.
+
+Using the calling name is necessary because
 printcap(5) definitions only allow specifying the accounting filter
 path and name. The few parameters sent to the filter are specified and
 sent by lpd(8). Using the calling name to specify the output device
-works around this limitation. In most cases just a couple of links are
-required. Most printers accept one or more of just a few
-printer-control languages (PCLs) or page-description languages (PDLs).
-The most common are: ASCII + control flow (dot-matrix and line
-printers) PCL (typically PCL3 - PCL6) PostScript Check your printer
+works around this limitation.
+
+In most cases just a couple of links are required. Most printers
+accept one or more of just a few printer-control languages (PCLs) or
+page-description languages (PDLs).
+
+The most common are:
+```
+  ASCII + control flow (dot-matrix and line printers)
+  PCL (typically PCL3 - PCL6)
+  PostScript Check your printer
+```
+
 manual for details about which PCLs or PDLs your printer accepts.
 
 FILES
@@ -91,31 +102,39 @@ system printcap(5) file specifying the accounting filter.
         sh:                             # suppress burst-page header
 ```
 
-The definition above will convert the input print job to PCL 6 (monochrome),
-which many printers will accept.
-The "lp:9100@192.168.68.10" line directs lpd(8) to send the output of the
-accounting filter to port 9100 on the remote system.
-Port 9100 is a common port for printers to listen for raw streams. Port 515 is
-the default port for lpd(8) services which may have their own accounting
-filters which may convert the file in unexpected ways.
-Use a remote lpd(8) only when you're sure the remote server can process the
-file and use lpr(8) with an appropriate printcap(5) entry.
+The definition above will convert the input print job to PCL 6
+(monochrome), which many printers will accept.
+
+The "lp:9100@192.168.68.10" line directs lpd(8) to send the output of
+the accounting filter to port 9100 on the remote system.
+
+Port 9100 is a common port for printers to listen for raw streams.
+Port 515 is the default port for lpd(8) services which may have their
+own accounting filters which may convert the file in unexpected ways.
+
+Use a remote lpd(8) only when you're sure the remote server can
+process the file and use lpr(8) with an appropriate printcap(5) entry.
+
 A list of available output devices can be found by executing gs -h
 E.g.,
 ```
   ln -s /usr/local/bin/lpf_gs /usr/local/bin/lpf_pxlmono
 ```
-creates a link to lpf_gs that converts from postscript to LaserJet4 PCL.
-In addition to converting input formats, as an accounting filter, lpf_gs logs
-accounting information if given an accounting file to log to.
+
+creates a link to lpf_gs that converts from postscript to LaserJet4
+PCL.
+
+In addition to converting input formats, as an accounting filter,
+lpf_gs logs accounting information if given an accounting file to log
+to.
 
 DIAGNOSTICS
 
-lpf_gs depends on Ghostscript (gs(1)) to work. lpf_gs will fail if Ghostscript
-cannot be found.
+lpf_gs depends on Ghostscript (gs(1)) to work. lpf_gs will fail if
+Ghostscript cannot be found.
 
-lpf_gs will check whether gs(1) supports the device specified in the name of
-the symlink and will fail if the device is not supported.
+lpf_gs will check whether gs(1) supports the device specified in the
+name of the symlink and will fail if the device is not supported.
 
 SEE ALSO
 
@@ -135,9 +154,9 @@ lpd(8) accepts the following return codes:
  2 success but with some errors
 ```
 
-The exit command in sh(1) only allows values ranging from 0 - 255. lpf_gs exits
-with 1 for all error conditions and prints an error message to stderr. However,
-this doesn't seem to be a problem. lpd(8) tries 3 times and aborts if it
-doesn't receive 0 or 2.
+The exit command in sh(1) only allows values ranging from 0 - 255.
+lpf_gs exits with 1 for all error conditions and prints an error
+message to stderr. However, this doesn't seem to be a problem. lpd(8)
+tries 3 times and aborts if it doesn't receive 0 or 2.
 
 July 10, 2016  OpenBSD 6.0
