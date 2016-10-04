@@ -46,7 +46,7 @@ setting the text filter to the name of the file created as a symlink
 to lpf_gs.
 
 The calling name of the filter must be in the form of lpf_device where
-device is an output device known by Ghostscript. /E.g./, lpf_pxlmono.
+device is an output device known by Ghostscript. *E.g.*, lpf_pxlmono.
 
 Using the calling name is necessary because printcap(5) definitions
 only allow specifying the accounting filter path and name. The few
@@ -117,14 +117,14 @@ Use a remote lpd(8) only when you're sure the remote server can
 process the file and use lpr(8) with an appropriate printcap(5) entry.
 
 A list of available output devices can be found by executing gs -h.
-/E.g./, the following command creates a link to lpf_gs that converts
+*E.g.*, the following command creates a link to lpf_gs that converts
 from postscript to PCL 6.
 
 ```
   ln -s /usr/local/bin/lpf_gs /usr/local/bin/lpf_pxlmono
 ```
 
-(*N.B.* /pxlcolor/ work for PCL 6 color printers.)
+(**N.B.** *pxlcolor* work for PCL 6 color printers.)
 
 In addition to converting input formats, because it's an accounting
 filter, lpf_gs can log accounting information if given an accounting
