@@ -171,19 +171,28 @@ with an appropriate
 .Xr printcap 5
 entry.
 .Pp
-A list of available output devices can be found by executing gs -h
-.Pp
-.Em E.g. Ns ,
+A list of available output devices can be found by executing gs -h.
+.Em E.g. Ns , the following command creates a link to
+.Nm
+that converts from postscript to PCL 6.
 .Bd -offset '	'
 ln -s /usr/local/bin/lpf_gs /usr/local/bin/lpf_pxlmono
 .Ed
-creates a link to
-.Nm
-that converts from postscript to LaserJet4 PCL.
 .Pp
-In addition to converting input formats, as an accounting filter,
-lpf_gs logs accounting information if given an accounting file to log
-to.
+.Ns ( Sy N.B.
+.Em pxlcolor
+works for PCL 6 color printers.)
+.Pp
+In addition to converting input formats, because it's an accounting filter,
+.Nm
+can log accounting information if given an accounting file to log to in the
+.Xr printcap 5
+definition.
+.Pp
+Lastly, to print to text files see the documentation for
+.Xr a2ps 1
+or
+.Xr enscript 1 Ns .
 .Sh DIAGNOSTICS
 .Nm
 depends on Ghostscript
@@ -199,6 +208,8 @@ supports the
 .Ar device
 specified in the name of the symlink and will fail if the device is not supported.
 .Sh SEE ALSO
+.Xr a2ps 1,
+.Xr enscript 1,
 .Xr gs 1 ,
 .Xr lpq 1 ,
 .Xr lprm 1 ,

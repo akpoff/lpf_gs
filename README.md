@@ -46,13 +46,13 @@ setting the text filter to the name of the file created as a symlink
 to lpf_gs.
 
 The calling name of the filter must be in the form of lpf_device where
-device is an output device known by Ghostscript. E.g., lpf_pxlmono.
+device is an output device known by Ghostscript. /E.g./, lpf_pxlmono.
 
-Using the calling name is necessary because
-printcap(5) definitions only allow specifying the accounting filter
-path and name. The few parameters sent to the filter are specified and
-sent by lpd(8). Using the calling name to specify the output device
-works around this limitation.
+Using the calling name is necessary because printcap(5) definitions
+only allow specifying the accounting filter path and name. The few
+parameters sent to the filter are specified and sent by lpd(8). Using
+the calling name to specify the output device works around this
+limitation.
 
 In most cases just a couple of links are required. Most printers
 accept one or more of just a few printer-control languages (PCLs) or
@@ -116,18 +116,22 @@ own accounting filters which may convert the file in unexpected ways.
 Use a remote lpd(8) only when you're sure the remote server can
 process the file and use lpr(8) with an appropriate printcap(5) entry.
 
-A list of available output devices can be found by executing gs -h
-E.g.,
+A list of available output devices can be found by executing gs -h.
+/E.g./, the following command creates a link to lpf_gs that converts
+from postscript to PCL 6.
+
 ```
   ln -s /usr/local/bin/lpf_gs /usr/local/bin/lpf_pxlmono
 ```
 
-creates a link to lpf_gs that converts from postscript to LaserJet4
-PCL.
+(*N.B.* /pxlcolor/ work for PCL 6 color printers.)
 
-In addition to converting input formats, as an accounting filter,
-lpf_gs logs accounting information if given an accounting file to log
-to.
+In addition to converting input formats, because it's an accounting
+filter, lpf_gs can log accounting information if given an accounting
+file to log to in the printcap(5) definition.
+
+Lastly, to print to text files see the documentation for a2ps(1) or
+enscript(1).
 
 DIAGNOSTICS
 
@@ -139,7 +143,8 @@ name of the symlink and will fail if the device is not supported.
 
 SEE ALSO
 
-gs(1), lpq(1), lprm(1), pr(1), symlink(2), printcap(5), lpc(8), lpd(8)
+a2ps(1), enscript(1), gs(1), lpq(1), lprm(1), pr(1), symlink(2),
+printcap(5), lpc(8), lpd(8)
 
 AUTHORS
 
