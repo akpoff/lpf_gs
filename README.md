@@ -62,10 +62,11 @@ The most common are:
 ```
   ASCII + control flow (dot-matrix and line printers)
   PCL (typically PCL3 - PCL6)
-  PostScript Check your printer
+  PostScript
 ```
 
-manual for details about which PCLs or PDLs your printer accepts.
+Check your printer manual for details about which PCLs or PDLs your
+printer accepts.
 
 FILES
 ```
