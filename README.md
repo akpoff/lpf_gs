@@ -1,15 +1,17 @@
 LPF_GS(1) General Commands Manual LPF_GS(1)
 
-NAME
+# NAME
 
 lpf_gs - printer filter to convert Postscript to PCL
 
-SYNOPSIS
+
+# SYNOPSIS
 
 lpf_gs [-cdhijlnvw] [-h host] [-i indent] [-j job] [-l length] -n user [-w 
        width] acct-file
 
-DESCRIPTION
+
+# DESCRIPTION
 
 lpf_gs is an lpd(8) accounting filter that takes a PostScript, PDF or
 text file via stdin and converts it to an output format based on the
@@ -40,11 +42,10 @@ written in sh(1) rather than C. The options are as follows:
     Provided for backwards compatibility. Ignored.
 ```
 
-CREATING ACCOUNTING FILTERS
+# CREATING ACCOUNTING FILTERS
 
-Accounting filters are created by making a symlink to lpf_gs and then
-setting the text filter to the name of the file created as a symlink
-to lpf_gs.
+Accounting filters are created by copying or making a symlink to
+lpf_gs and giving it the name of a Ghostscript text filter.
 
 The calling name of the filter must be in the form of lpf_device where
 device is an output device known by Ghostscript. *E.g.*, lpf_pxlmono.
@@ -69,7 +70,12 @@ The most common are:
 Check your printer manual for details about which PCLs or PDLs your
 printer accepts.
 
-FILES
+
+# ENVIRONMENT
+     LPF_GS_DEBUG		  variable enables debugging.
+
+
+# FILES
 ```
 /path_to_lpf_device/gs_init
     Postscript configuration file read by lpf_gs if found in the same directory
@@ -77,7 +83,8 @@ FILES
     cf Ghostscript documentation for more details about using gs_init.
 ```
 
-EXIT STATUS
+
+# EXIT STATUS
 
 lpf_gs utility exits with one of the following values:
 
@@ -88,7 +95,8 @@ lpf_gs utility exits with one of the following values:
     Errors were detected. Try again.
 ```
 
-EXAMPLES
+
+# EXAMPLES
 
 To use an lpd(8) definition with lpf_gs you'll need an entry in the
 system printcap(5) file specifying the accounting filter.
@@ -118,8 +126,8 @@ Use a remote lpd(8) only when you're sure the remote server can
 process the file and use lpr(8) with an appropriate printcap(5) entry.
 
 A list of available output devices can be found by executing gs -h.
-*E.g.*, the following command creates a link to lpf_gs that converts
-from postscript to PCL 6.
+The following command creates a link to lpf_gs that converts from
+postscript to PCL 6.
 
 ```
   ln -s /usr/local/bin/lpf_gs /usr/local/bin/lpf_pxlmono
@@ -134,24 +142,28 @@ file to log to in the printcap(5) definition.
 Lastly, to print to text files see the documentation for a2ps(1) or
 enscript(1).
 
-DIAGNOSTICS
+
+# DIAGNOSTICS
 
 lpf_gs depends on Ghostscript (gs(1)) to work. lpf_gs will fail if
 Ghostscript cannot be found.
 
-lpf_gs will check whether gs(1) supports the device specified in the
-name of the symlink and will fail if the device is not supported.
+lpf_gs will check whether gs(1) supports the device specified by the
+name of the print filter and will fail if the device is not supported.
 
-SEE ALSO
+
+# SEE ALSO
 
 a2ps(1), enscript(1), gs(1), lpq(1), lprm(1), pr(1), symlink(2),
 printcap(5), lpc(8), lpd(8)
 
-AUTHORS
+
+# AUTHORS
 
 The lpf_gs utility was written by Aaron Poffenberger <akp@hypernote.com>.
 
-BUGS
+
+# BUGS
 
 lpd(8) accepts the following return codes:
 ```
