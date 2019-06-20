@@ -109,19 +109,19 @@ The most common are:
 Check your printer manual for details about which PCLs or PDLs your
 printer accepts.
 .Sh ENVIRONMENT
-.Bl -tag -width "/path_to_lpf_device/gs_init"
+.Bl -tag -width "/path_to_lpf_device/gs_init.ps"
 .It Ev LPF_GS_DEBUG
 variable enables debugging.
 .El
 .Sh FILES
-.Bl -tag -width "/path_to_lpf_device/gs_init" -compact
-.It Pa /path_to_lpf_device/gs_init
+.Bl -tag -width "/path_to_lpf_device/gs_init.ps" -compact
+.It Pa /path_to_lpf_device/gs_init.gs
 Postscript configuration file read by
 .Nm
 if found in the same directory as the filter.
 .Pp
 .Em cf
-Ghostscript documentation for more details about using gs_init.
+Ghostscript documentation for more details about using gs_init.ps.
 .El
 .Sh EXIT STATUS
 .Nm
@@ -250,3 +250,10 @@ stderr.
 However, this doesn't seem to be a problem.
 .Xr lpd 8
 tries 3 times and aborts if it doesn't receive 0 or 2.
+.Sh SECURITY CONSIDERATIONS
+When using a
+.Xr gs 1
+init file like
+.Em gs_init.ps
+the print filter and init file must be on a drive mounted with
+.Sy wxallowed .

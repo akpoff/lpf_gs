@@ -76,10 +76,10 @@ printer accepts.
 
 ## FILES
 ```
-/path_to_lpf_device/gs_init
+/path_to_lpf_device/gs_init.ps
     Postscript configuration file read by lpf_gs if found in the same directory
     as the filter.
-    cf Ghostscript documentation for more details about using gs_init.
+    cf Ghostscript documentation for more details about using gs_init.ps.
 ```
 
 
@@ -176,5 +176,11 @@ The exit command in sh(1) only allows values ranging from 0 - 255.
 lpf_gs exits with 1 for all error conditions and prints an error
 message to stderr. However, this doesn't seem to be a problem. lpd(8)
 tries 3 times and aborts if it doesn't receive 0 or 2.
+
+
+## SECURITY CONSIDERATIONS
+
+When using a gs(1) init file like *gs_init.ps* the print filter and
+init file must be on a drive mounted with **wxallowed**.
 
 June 19, 2019
