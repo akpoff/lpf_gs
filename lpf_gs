@@ -56,18 +56,18 @@ log() {
 }
 
 # create temp files
-TMPFILE=$(mktemp -q "/tmp/lpf_${gs_device}.XXXXXXXXXX") ||
+TMP_FILE=$(mktemp -q "/tmp/lpf_${gs_device}.XXXXXXXXXX") ||
 	(log "Unable to create $__progname tmp file ... aborting" ; \
 	 exit $err_exit)
-ASERRFILE="${TMPFILE}.as_err"
-ASTMPFILE="${TMPFILE}.as"
-GSERRFILE="${TMPFILE}.gs_err"
-GSTMPFILE="${TMPFILE}.gs"
+AS_ERR_FILE="${TMP_FILE}.as_err"
+AS_TMP_FILE="${TMP_FILE}.as"
+GS_ERR_FILE="${TMP_FILE}.gs_err"
+GS_TMP_FILE="${TMP_FILE}.gs"
 
 cleanup() {
 	trap "" EXIT
-	rm -f "${TMPFILE}" "${ASERRFILE}" "${ASTMPFILE}" \
-		"${GSERRFILE}" "${GSTMPFILE}"
+	rm -f "${TMP_FILE}" "${AS_ERR_FILE}" "${AS_TMP_FILE}" \
+		"${GS_ERR_FILE}" "${GS_TMP_FILE}"
 }
 trap cleanup EXIT
 trap 'log $__progname aborted by user;exit $err_exit' INT
@@ -99,24 +99,24 @@ gs_init="${__dirname}/gs_init.ps"
 print() {
 	# send stdin to a file we can check format to see whether
 	# we can print it
-	cat > "${TMPFILE}"
+	cat > "${TMP_FILE}"
 	can_convert=$TRUE
-	ft=$(file -b "${TMPFILE}")
+	ft=$(file -b "${TMP_FILE}")
 	if echo "$ft" | grep -q text; then
 		__as=$(basename "$as")
 		if [ "$__as" = "a2ps" ] ; then
 			log "Converting from ASCII to postscript" \
 				"using $__as"
 			$as -q -M letter -B --center-title="${job}" \
-				--output="${ASTMPFILE}" \
-				"${TMPFILE}" 2>"${ASERRFILE}"
+				--output="${AS_TMP_FILE}" \
+				"${TMP_FILE}" 2>"${AS_ERR_FILE}"
 			as_success=$?
 		elif [ "$__as" = "enscript" ] ; then
 			log "Converting from ASCII to postscript" \
 				"using $__as"
 			$as -q --header="${job} %W Page $% of $=" \
-				--output="${ASTMPFILE}" \
-				"${TMPFILE}" 2>"${ASERRFILE}"
+				--output="${AS_TMP_FILE}" \
+				"${TMP_FILE}" 2>"${AS_ERR_FILE}"
 			as_success=$?
 		else
 			can_convert=$FALSE
@@ -124,23 +124,23 @@ print() {
 			exit $err_exit
 		fi
 		if [ $as_success -eq $FALSE ] ; then
-			log "$(cat "${ASERRFILE}")"
+			log "$(cat "${AS_ERR_FILE}")"
 			exit $err_exit
 		else
-			mv "${ASTMPFILE}" "${GSTMPFILE}"
+			mv "${AS_TMP_FILE}" "${GS_TMP_FILE}"
 			mv_success=$?
 			if [ $mv_success -eq $FALSE ] ; then
 				log "Unable to mv" \
-					"${ASTMPFILE} to ${GSTMPFILE}"
+					"${AS_TMP_FILE} to ${GS_TMP_FILE}"
 				exit $err_exit
 			fi
 		fi
 	elif echo "$ft" | grep -Eq 'PDF|PostScript'; then
 		log "Converting from PDF to $gs_device"
-		mv "${TMPFILE}" "${GSTMPFILE}"
+		mv "${TMP_FILE}" "${GS_TMP_FILE}"
 		mv_success=$?
 		if [ $mv_success -eq $FALSE ] ; then
-			log "Unable to mv ${ASTMPFILE} to ${GSTMPFILE}"
+			log "Unable to mv ${AS_TMP_FILE} to ${GS_TMP_FILE}"
 			exit $err_exit
 		fi
 	else
@@ -157,33 +157,33 @@ print() {
 		if [ -e "${gs_init}" ] ; then
 			$gs -q -dNOPROMPT -dNOPAUSE -dSAFER -dBATCH \
 				-dNOPAUSE -sDEVICE="${gs_device}" \
-				-sOutputFile=- "${gs_init}" "${GSTMPFILE}" \
-				-c quit 2>"${GSERRFILE}"
+				-sOutputFile=- "${gs_init}" "${GS_TMP_FILE}" \
+				-c quit 2>"${GS_ERR_FILE}"
 			gs_success=$?
 		else
 			$gs -q -dNOPROMPT -dNOPAUSE -dSAFER -dBATCH \
 				-dNOPAUSE -sDEVICE="${gs_device}" \
-				-sOutputFile=- "${GSTMPFILE}" \
-				-c quit 2>"${GSERRFILE}"
+				-sOutputFile=- "${GS_TMP_FILE}" \
+				-c quit 2>"${GS_ERR_FILE}"
 			gs_success=$?
 		fi
 		if [ $gs_success -ne $TRUE ] ; then
-			log "$(cat "${GSERRFILE}")"
+			log "$(cat "${GS_ERR_FILE}")"
 			exit $err_exit
 		fi
 
 		if [ ! -z "$af" ] ; then
-			action="(${GSTMPFILE}) (r) file runpdfbegin"
+			action="(${GS_TMP_FILE}) (r) file runpdfbegin"
 			action="$action pdfpagecount = quit"
 			npages=$($gs -q -dNODISPLAY -c "$action" \
-				2>"${GSERRFILE}")
+				2>"${GS_ERR_FILE}")
 			if [ $? -eq $TRUE ] ; then
 				printf "%7.2f\\t%s:%s\\n" "$npages" "$host" \
 					"$name" >> $af
 			else
 				log "Print job completed but unable to" \
 					"count pages for accounting file"
-				log "$(cat "${GSERRFILE}")"
+				log "$(cat "${GS_ERR_FILE}")"
 				log "This error often arises when" \
 					"converting ASCII to postscript"
 			fi
