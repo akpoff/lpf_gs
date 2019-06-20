@@ -46,8 +46,9 @@ log() {
 
 		# send to stderr for logging
 		# lpd will handle logging
-		printf "%s\\n" "$date $hostname $__progname[$pid]: ($job)" \
-			"$*" > /dev/stderr
+		printf "%s\\n" \
+			"$date $hostname $__progname[$pid]: ($job) $*" \
+			> /dev/stderr
 	else
 		# send to stdout to work with pipes
 		# when users call from cl
