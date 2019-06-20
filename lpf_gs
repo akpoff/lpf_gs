@@ -173,8 +173,8 @@ print() {
 		fi
 
 		if [ ! -z "$af" ] ; then
-			action="(${GSTMPFILE}) (r) file runpdfbegin" \
-				"pdfpagecount = quit"
+			action="(${GSTMPFILE}) (r) file runpdfbegin"
+			action="$action pdfpagecount = quit"
 			npages=$($gs -q -dNODISPLAY -c "$action" \
 				2>"${GSERRFILE}")
 			if [ $? -eq $TRUE ] ; then
