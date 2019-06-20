@@ -63,8 +63,13 @@ ASTMPFILE="${TMPFILE}.as"
 GSERRFILE="${TMPFILE}.gs_err"
 GSTMPFILE="${TMPFILE}.gs"
 
-trap "rm -f '${TMPFILE}' '${ASERRFILE}' '${ASTMPFILE}' '${GSERRFILE}' '${GSTMPFILE}'" EXIT
-trap "log_msg $__progname aborted by user;exit $err_exit" INT
+cleanup() {
+	trap "" EXIT
+	rm -f "${TMPFILE}" "${ASERRFILE}" "${ASTMPFILE}" \
+		"${GSERRFILE}" "${GSTMPFILE}"
+}
+trap cleanup EXIT
+trap 'log_msg $__progname aborted by user;exit $err_exit' INT
 
 TRUE=0
 FALSE=1
