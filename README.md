@@ -78,7 +78,7 @@ printer accepts.
 ```
 /path_to_lpf_device/gs_init
     Postscript configuration file read by lpf_gs if found in the same directory
-    as the symlinked filter.
+    as the filter.
     cf Ghostscript documentation for more details about using gs_init.
 ```
 
