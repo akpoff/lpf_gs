@@ -12,7 +12,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: Jul 10 2016 $
+.Dd $Mdocdate: Jun 19 2019 $
 .Dt LPF_GS 1
 .Os
 .Sh NAME
@@ -36,23 +36,22 @@ is an
 .Xr lpd 8
 accounting filter that takes a PostScript, PDF or text file via stdin
 and converts it to an output format based on the calling name of the
-program using Ghostscript. Accouting information is logged to
-.Ar acct-name.
-.
+program using Ghostscript.
+Accouting information is logged to
+.Ar acct-name .
 .Pp
 .Nm
 is based on the default
 .Xr lpd 8
-accounting filter
-.Xr lpf Ns
-, though written in
+accounting filter lpf, though written in
 .Xr sh 1
 rather than C.
 .Pp
 The options are as follows:
 .Bl -tag -width Ds
 .It Fl c
-Provided for backwards compatibility. Ignored.
+Provided for backwards compatibility.
+Ignored.
 .It Fl d
 Enable debug.
 .It Fl h
@@ -60,25 +59,27 @@ Print to the
 .Ar host
 (ip or hostname) specified.
 .It Fl i
-Provided for backwards compatibility. Ignored.
+Provided for backwards compatibility.
+Ignored.
 .It Fl j
 .Ar job
 name to use when logging.
 .It Fl l
-Provided for backwards compatibility. Ignored.
+Provided for backwards compatibility.
+Ignored.
 .It Fl n
 .Ar user
 who printed the job.
 .It Fl v
 Print the version.
 .It Fl w
-Provided for backwards compatibility. Ignored.
+Provided for backwards compatibility.
+Ignored.
+.El
 .Ss CREATING ACCOUNTING FILTERS
-Accounting filters are created by making a symlink to
+Accounting filters are created by copying or making a symlink to
 .Nm
-and then setting the text filter to the name of the file created as a
-symlink to
-.Nm .
+and giving it the name of a Ghostscript text filter.
 .Pp
 The calling name of the filter must be in the form of
 .Sy lpf_ Ns Ar device
@@ -87,20 +88,20 @@ where
 is an output
 .Ar device
 known by Ghostscript.
-.Em E.g. Ns ,
+.Em E.g. ,
 lpf_pxlmono.
 .Pp
 Using the calling name is necessary because
 .Xr printcap 5
 definitions only allow specifying the accounting filter path and name.
 The few parameters sent to the filter are specified and sent by
-.Xr lpd 8 Ns .
+.Xr lpd 8 .
 Using the calling name to specify the output device works around this
 limitation.
 .Pp
-In most cases just a couple of links are required. Most printers
-accept one or more of just a few printer-control languages (PCLs) or
-page-description languages (PDLs).
+In most cases just a couple of links are required.
+Most printers accept one or more of just a few printer-control languages
+(PCLs) or page-description languages (PDLs).
 .Pp
 The most common are:
   ASCII + control flow (dot-matrix and line printers)
@@ -109,6 +110,11 @@ The most common are:
 .Pp
 Check your printer manual for details about which PCLs or PDLs your
 printer accepts.
+.Sh ENVIRONMENT
+.Bl -tag -width "/path_to_lpf_device/gs_init"
+.It Ev LPF_GS_DEBUG
+variable enables debugging.
+.El
 .Sh FILES
 .Bl -tag -width "/path_to_lpf_device/gs_init" -compact
 .It Pa /path_to_lpf_device/gs_init
@@ -127,7 +133,8 @@ utility exits with one of the following values:
 .Nm
 printed successfully.
 .It 1
-Errors were detected. Try again.
+Errors were detected.
+Try again.
 .El
 .Sh EXAMPLES
 To use an
@@ -137,7 +144,6 @@ definition with
 you'll need an entry in the system
 .Xr printcap 5
 file specifying the accounting filter.
-.Pp
 .Bd -literal
   lp|local line printer:\\
 	:af=/var/log/lpd-acct:\\          # accounting file (optional)
@@ -157,8 +163,8 @@ The "lp:9100@192.168.68.10" line directs
 to send the output of the accounting filter to port 9100 on the remote
 system.
 .Pp
-Port 9100 is a common port for printers to listen for raw
-streams. Port 515 is the default port for
+Port 9100 is a common port for printers to listen for raw streams.
+Port 515 is the default port for
 .Xr lpd 8
 services which may have their own accounting filters which may convert
 the file in unexpected ways.
@@ -172,14 +178,17 @@ with an appropriate
 entry.
 .Pp
 A list of available output devices can be found by executing gs -h.
-.Em E.g. Ns , the following command creates a link to
+The following command creates a link to
 .Nm
 that converts from postscript to PCL 6.
-.Bd -offset '	'
+.Bd -ragged -offset indent
 ln -s /usr/local/bin/lpf_gs /usr/local/bin/lpf_pxlmono
 .Ed
 .Pp
-.Ns ( Sy N.B.
+.Sm off
+(
+.Sy N.B.
+.Sm on
 .Em pxlcolor
 works for PCL 6 color printers.)
 .Pp
@@ -192,11 +201,13 @@ definition.
 Lastly, to print to text files see the documentation for
 .Xr a2ps 1
 or
-.Xr enscript 1 Ns .
+.Xr enscript 1 .
 .Sh DIAGNOSTICS
 .Nm
-depends on Ghostscript
-.No ( Xr gs 1 Ns )
+.Sm off
+depends on Ghostscript (
+.Xr gs 1 )
+.Sm on
 to work.
 .Nm
 will fail if Ghostscript cannot be found.
@@ -206,10 +217,10 @@ will check whether
 .Xr gs 1
 supports the
 .Ar device
-specified in the name of the symlink and will fail if the device is not supported.
+specified by the name of the print filter and will fail if the device is not supported.
 .Sh SEE ALSO
-.Xr a2ps 1,
-.Xr enscript 1,
+.Xr a2ps 1 ,
+.Xr enscript 1 ,
 .Xr gs 1 ,
 .Xr lpq 1 ,
 .Xr lprm 1 ,
@@ -237,6 +248,7 @@ The exit command in
 only allows values ranging from 0 - 255.
 .Nm
 exits with 1 for all error conditions and prints an error message to
-stderr. However, this doesn't seem to be a problem.
+stderr.
+However, this doesn't seem to be a problem.
 .Xr lpd 8
 tries 3 times and aborts if it doesn't receive 0 or 2.
