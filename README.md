@@ -180,7 +180,7 @@ tries 3 times and aborts if it doesn't receive 0 or 2.
 
 ## SECURITY CONSIDERATIONS
 
-When using a gs(1) init file like *gs_init.ps* the print filter and
-init file must be on a drive mounted with **wxallowed**.
+When using a gs(1) init file like *gs_init.ps* on OpenBSD the print
+filter and init file must be on a drive mounted with **wxallowed**.
 
 June 19, 2019
