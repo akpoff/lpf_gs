@@ -50,12 +50,12 @@ log_msg() {
 	else
 		# send to stdout to work with pipes
 		# when users call from cl
-		echo $msg
+		echo "$msg"
 	fi
 }
 
 # create temp files
-TMPFILE=$(mktemp -q /tmp/lpf_${gs_device}.XXXXXXXXXX) ||
+TMPFILE=$(mktemp -q "/tmp/lpf_${gs_device}.XXXXXXXXXX") ||
 	(log_msg "Unable to create $__progname tmp file ... aborting" ; \
 	 exit $err_exit)
 ASERRFILE="${TMPFILE}.as_err"
@@ -104,15 +104,15 @@ print() {
 	if echo "$ft" | grep -q text; then
 		__as=$(basename "$as")
 		if [  "$__as" = "a2ps" ] ; then
-			log_msg Converting from ASCII to postscript \
-				using $__as
+			log_msg "Converting from ASCII to postscript" \
+				"using $__as"
 			$as -q -M letter -B --center-title="${job}" \
 				--output="${ASTMPFILE}" \
 				"${TMPFILE}" 2>"${ASERRFILE}"
 			as_success=$?
 		elif [ "$__as" = "enscript" ] ; then
-			log_msg Converting from ASCII to postscript \
-				using $__as
+			log_msg "Converting from ASCII to postscript" \
+				"using $__as"
 			$as -q --header="${job} %W Page $% of $=" \
 				--output="${ASTMPFILE}" \
 				"${TMPFILE}" 2>"${ASERRFILE}"
@@ -134,7 +134,7 @@ print() {
 			fi
 		fi
 	elif echo "$ft" | grep -Eq 'PDF|PostScript'; then
-		log_msg Converting from PDF to $gs_device
+		log_msg "Converting from PDF to $gs_device"
 		mv "${TMPFILE}" "${GSTMPFILE}"
 		mv_success=$?
 		if [ $mv_success -eq $FALSE ] ; then
@@ -143,7 +143,7 @@ print() {
 		fi
 	else
 		can_convert=$FALSE
-		log_msg Unknown file type "($ft)", aborting conversion...
+		log_msg "Unknown file type ($ft), aborting conversion..."
 		exit $err_exit
 	fi
 
@@ -154,13 +154,13 @@ print() {
 		# gs_init.ps
 		if [ -e "${gs_init}" ] ; then
 			$gs -q -dNOPROMPT -dNOPAUSE -dSAFER -dBATCH \
-			    -dNOPAUSE -sDEVICE=${gs_device} -sOutputFile=- \
+			    -dNOPAUSE -sDEVICE="${gs_device}" -sOutputFile=- \
 			    "${gs_init}" "${GSTMPFILE}" -c quit \
 			    2>"${GSERRFILE}"
 			gs_success=$?
 		else
 			$gs -q -dNOPROMPT -dNOPAUSE -dSAFER -dBATCH \
-			    -dNOPAUSE -sDEVICE=${gs_device} -sOutputFile=- \
+			    -dNOPAUSE -sDEVICE="${gs_device}" -sOutputFile=- \
 			    "${GSTMPFILE}" -c quit 2>"${GSERRFILE}"
 			gs_success=$?
 		fi
@@ -176,11 +176,11 @@ print() {
 				printf "%7.2f\\t%s:%s\\n" "$npages" "$host" "$name" \
 				       >> $af
 			else
-				log_msg Print job completed but \
-					unable to count pages for accounting file
+				log_msg "Print job completed but" \
+					"unable to count pages for accounting file"
 				log_msg "$(cat "${GSERRFILE}")"
-				log_msg This error often arises when converting \
-					ASCII to postscript
+				log_msg "This error often arises when converting" \
+					"ASCII to postscript"
 			fi
 		fi
 	fi
@@ -198,31 +198,31 @@ usage() {
 	version
 	log_msg ""
 	opts="[-c] [-h host] [-i indent] [-l length] [-n name] [-w width] [acctfile]"
-	log_msg usage: $__progname $opts
+	log_msg "usage: $__progname $opts"
 	log_msg
 }
 
 debug() {
 	if [ $debug -eq $TRUE ] || [ -n "$LPF_GS_DEBUG" ] ; then
 		log_msg Variables:
-		log_msg $call
-		log_msg device=$gs_device
-		log_msg af=$af
-		log_msg ctrl=$ctrl
-		log_msg host=$host
-		log_msg gs=$gs
-		log_msg indent=$indent
-		log_msg length=$length
-		log_msg name=$name
-		log_msg width=$width
-		log_msg pid=$pid
-		log_msg cmd=$cmd
-		log_msg version=$version
+		log_msg "$call"
+		log_msg "device=$gs_device"
+		log_msg "af=$af"
+		log_msg "ctrl=$ctrl"
+		log_msg "host=$host"
+		log_msg "gs=$gs"
+		log_msg "indent=$indent"
+		log_msg "length=$length"
+		log_msg "name=$name"
+		log_msg "width=$width"
+		log_msg "pid=$pid"
+		log_msg "cmd=$cmd"
+		log_msg "version=$version"
 		log_msg
 	fi
 }
 
-if [ $__progname = $__basename ] ; then
+if [ "$__progname" = "$__basename" ] ; then
 	usage
 	exit 0
 fi
@@ -234,7 +234,7 @@ if [ ! -f "$gs" ] ; then
 	exit $err_exit
 fi
 
-if ! gs -h | grep -q $gs_device; then
+if ! gs -h | grep -q "$gs_device"; then
 	version
 	log_msg
 	log_msg "No such ghostscript device '$gs_device' (cf gs -h)"
@@ -280,13 +280,13 @@ while getopts :cdh:i:j:l:n:vw: opt ; do
 			width=${OPTARG}
 			;;
 		:)
-			log_msg $__progname: option requires an argument \
-				-- ${OPTARG}
+			log_msg "$__progname: option requires an argument" \
+				"-- ${OPTARG}"
 			log_msg
 			cmd=abort
 			;;
 		\?)
-			log_msg $__progname: invalid option -- ${OPTARG}
+			log_msg "$__progname: invalid option -- ${OPTARG}"
 			log_msg
 			cmd=abort
 			;;
