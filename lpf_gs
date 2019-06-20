@@ -234,8 +234,7 @@ if [ ! -f "$gs" ] ; then
 	exit $err_exit
 fi
 
-has_gs_device=$(gs -h | grep $gs_device | wc -l)
-if [ $has_gs_device -eq 0 ] ; then
+if ! gs -h | grep -q $gs_device; then
 	version
 	log_msg
 	log_msg "No such ghostscript device '$gs_device' (cf gs -h)"
