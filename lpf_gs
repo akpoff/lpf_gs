@@ -96,7 +96,7 @@ print() {
 	cat > "${TMPFILE}"
 	can_convert=$TRUE
 	ft=$(file -b "${TMPFILE}")
-	if [ "$(echo $ft | grep text)" ] ; then
+	if echo "$ft" | grep -q text; then
 		__as=$(basename "$as")
 		if [  "$__as" = "a2ps" ] ; then
 			log_msg Converting from ASCII to postscript \
@@ -128,7 +128,7 @@ print() {
 				exit $err_exit
 			fi
 		fi
-	elif [ "$(echo $ft | egrep 'PDF|PostScript')" ] ; then
+	elif echo "$ft" | grep -Eq 'PDF|PostScript'; then
 		log_msg Converting from PDF to $gs_device
 		mv "${TMPFILE}" "${GSTMPFILE}"
 		mv_success=$?
