@@ -203,7 +203,7 @@ usage() {
 }
 
 debug() {
-	if [ $debug -eq $TRUE -o ! -z "$LPF_GS_DEBUG" ] ; then
+	if [ $debug -eq $TRUE ] || [ -n "$LPF_GS_DEBUG" ] ; then
 		log_msg Variables:
 		log_msg $call
 		log_msg device=$gs_device
