@@ -192,7 +192,7 @@ print() {
 }
 
 version() {
-	log_msg "$__basename $version - (linked as $__progname)"
+	log "$__progname $version"
 }
 
 usage() {
@@ -200,12 +200,8 @@ usage() {
 	if [ ! -t 0 ] ; then
 		cat > /dev/null
 	fi
-	version
-	log_msg ""
-	opts="[-c] [-h host] [-i indent] [-l length] [-n name] [-w width]" \
-		"[acctfile]"
-	log_msg "usage: $__progname $opts"
-	log_msg
+	log "usage: $__progname [-c] [-h host] [-i indent] [-l length]" \
+		"[-n name] [-w width] [acctfile]"
 }
 
 debug() {
@@ -302,6 +298,7 @@ shift $(( OPTIND - 1 ))
 # get remaining parameter as accounting file
 af="$*"
 
+debug
 case $cmd in
 	print)
 		print
@@ -318,4 +315,3 @@ case $cmd in
 		exit $err_exit
 		;;
 esac
-debug
