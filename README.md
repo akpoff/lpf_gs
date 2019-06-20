@@ -2,7 +2,7 @@ LPF_GS(1) General Commands Manual LPF_GS(1)
 
 NAME
 
-lpf_gs — printer filter to convert Postscript to PCL
+lpf_gs - printer filter to convert Postscript to PCL
 
 SYNOPSIS
 
@@ -95,13 +95,13 @@ system printcap(5) file specifying the accounting filter.
 
 ```
   lp|local line printer:\
-        af=/var/log/lpd-acct:\          # accounting file (optional)
-        if=/usr/local/bin/lpf_pxlmono:\ # a link to lpf_<device>
-        lf=/var/log/lpd-errs:\          # error log
-        lp=9100@192.168.68.10:\         # printer raw port
-        mx#0:\                          # turn-off max file size
-        sd=/var/spool/output/lpd:\      # spool directory
-        sh:                             # suppress burst-page header
+        :af=/var/log/lpd-acct:\          # accounting file (optional)
+        :if=/usr/local/bin/lpf_pxlmono:\ # a link to lpf_<device>
+        :lf=/var/log/lpd-errs:\          # error log
+        :lp=9100@192.168.68.10:\         # printer raw port
+        :mx#0:\                          # turn-off max file size
+        :sd=/var/spool/output/lpd:\      # spool directory
+        :sh:                             # suppress burst-page header
 ```
 
 The definition above will convert the input print job to PCL 6
@@ -166,4 +166,4 @@ lpf_gs exits with 1 for all error conditions and prints an error
 message to stderr. However, this doesn't seem to be a problem. lpd(8)
 tries 3 times and aborts if it doesn't receive 0 or 2.
 
-July 10, 2016  OpenBSD 6.0
+June 19, 2019

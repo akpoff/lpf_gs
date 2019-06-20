@@ -140,13 +140,13 @@ file specifying the accounting filter.
 .Pp
 .Bd -literal
   lp|local line printer:\\
-	af=/var/log/lpd-acct:\\          # accounting file (optional)
-	if=/usr/local/bin/lpf_pxlmono:\\ # a link to lpf_<device>
-	lf=/var/log/lpd-errs:\\          # error log
-	lp=9100@192.168.68.10:\\         # printer raw port
-	mx#0:\\                          # turn-off max file size
-	sd=/var/spool/output/lpd:\\      # spool directory
-	sh:                             # suppress burst-page header
+	:af=/var/log/lpd-acct:\\          # accounting file (optional)
+	:if=/usr/local/bin/lpf_pxlmono:\\ # a link to lpf_<device>
+	:lf=/var/log/lpd-errs:\\          # error log
+	:lp=9100@192.168.68.10:\\         # printer raw port
+	:mx#0:\\                          # turn-off max file size
+	:sd=/var/spool/output/lpd:\\      # spool directory
+	:sh:                             # suppress burst-page header
 .Ed
 .Pp
 The definition above will convert the input print job to PCL 6
