@@ -136,8 +136,8 @@ print() {
 				exit $err_exit
 			fi
 		fi
-	elif echo "$ft" | grep -Eq 'PDF|PostScript'; then
-		log "Converting from PDF to $gs_device"
+	elif [ "$ft" = PDF ] || [ "$ft" = PostScript ]; then
+		log "Converting from $ft to $gs_device"
 		mv "${TMP_FILE}" "${GS_TMP_FILE}"
 		mv_success=$?
 		if [ $mv_success -eq $FALSE ] ; then
@@ -155,17 +155,18 @@ print() {
 		# gs fails if you leave an extra space from an empty variable.
 		# Better to use an if/else to call gs correctly with/without
 		# gs_init.ps
+		touch "${GS_ERR_FILE}"
 		if [ -e "${gs_init}" ] ; then
-			$gs -q -dNOPROMPT -dNOPAUSE -dSAFER -dBATCH \
+			$gs -q -dNOPROMPT -dSAFER -dBATCH \
 				-dNOPAUSE -sDEVICE="${gs_device}" \
 				-sOutputFile=- "${gs_init}" "${GS_TMP_FILE}" \
-				-c quit 2>"${GS_ERR_FILE}"
+				-sstdout="${GS_ERR_FILE}"
 			gs_success=$?
 		else
-			$gs -q -dNOPROMPT -dNOPAUSE -dSAFER -dBATCH \
+			$gs -q -dNOPROMPT -dSAFER -dBATCH \
 				-dNOPAUSE -sDEVICE="${gs_device}" \
 				-sOutputFile=- "${GS_TMP_FILE}" \
-				-c quit 2>"${GS_ERR_FILE}"
+				-sstdout="${GS_ERR_FILE}"
 			gs_success=$?
 		fi
 		if [ $gs_success -ne $TRUE ] ; then
