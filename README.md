@@ -1,17 +1,17 @@
 LPF_GS(1) General Commands Manual LPF_GS(1)
 
-NAME
+## NAME
 
 lpf_gs - printer filter to convert Postscript to PCL
 
 
-SYNOPSIS
+## SYNOPSIS
 
 lpf_gs [-cdhijlnvw] [-h host] [-i indent] [-j job] [-l length] -n user [-w 
        width] acct-file
 
 
-DESCRIPTION
+## DESCRIPTION
 
 lpf_gs is an lpd(8) accounting filter that takes a PostScript, PDF or
 text file via stdin and converts it to an output format based on the
@@ -42,7 +42,7 @@ written in sh(1) rather than C. The options are as follows:
     Provided for backwards compatibility. Ignored.
 ```
 
-CREATING ACCOUNTING FILTERS
+## CREATING ACCOUNTING FILTERS
 
 Accounting filters are created by copying or making a symlink to
 lpf_gs and giving it the name of a Ghostscript text filter.
@@ -71,11 +71,11 @@ Check your printer manual for details about which PCLs or PDLs your
 printer accepts.
 
 
-ENVIRONMENT
+## ENVIRONMENT
      LPF_GS_DEBUG		  variable enables debugging.
 
 
-FILES
+## FILES
 ```
 /path_to_lpf_device/gs_init
     Postscript configuration file read by lpf_gs if found in the same directory
@@ -84,7 +84,7 @@ FILES
 ```
 
 
-EXIT STATUS
+## EXIT STATUS
 
 lpf_gs utility exits with one of the following values:
 
@@ -96,20 +96,20 @@ lpf_gs utility exits with one of the following values:
 ```
 
 
-EXAMPLES
+## EXAMPLES
 
 To use an lpd(8) definition with lpf_gs you'll need an entry in the
 system printcap(5) file specifying the accounting filter.
 
 ```
   lp|local line printer:\
-        :af=/var/log/lpd-acct:\          accounting file (optional)
-        :if=/usr/local/bin/lpf_pxlmono:\ a link to lpf_<device>
-        :lf=/var/log/lpd-errs:\          error log
-        :lp=9100@192.168.68.10:\         printer raw port
-        :mx#0:\                          turn-off max file size
-        :sd=/var/spool/output/lpd:\      spool directory
-        :sh:                             suppress burst-page header
+        :af=/var/log/lpd-acct:\          # accounting file (optional)
+        :if=/usr/local/bin/lpf_pxlmono:\ # a link to lpf_<device>
+        :lf=/var/log/lpd-errs:\          # error log
+        :lp=9100@192.168.68.10:\         # printer raw port
+        :mx#0:\                          # turn-off max file size
+        :sd=/var/spool/output/lpd:\      # spool directory
+        :sh:                             # suppress burst-page header
 ```
 
 The definition above will convert the input print job to PCL 6
@@ -143,7 +143,7 @@ Lastly, to print to text files see the documentation for a2ps(1) or
 enscript(1).
 
 
-DIAGNOSTICS
+## DIAGNOSTICS
 
 lpf_gs depends on Ghostscript (gs(1)) to work. lpf_gs will fail if
 Ghostscript cannot be found.
@@ -152,18 +152,18 @@ lpf_gs will check whether gs(1) supports the device specified by the
 name of the print filter and will fail if the device is not supported.
 
 
-SEE ALSO
+## SEE ALSO
 
 a2ps(1), enscript(1), gs(1), lpq(1), lprm(1), pr(1), symlink(2),
 printcap(5), lpc(8), lpd(8)
 
 
-AUTHORS
+## AUTHORS
 
 The lpf_gs utility was written by Aaron Poffenberger <akp@hypernote.com>.
 
 
-BUGS
+## BUGS
 
 lpd(8) accepts the following return codes:
 ```
