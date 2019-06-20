@@ -103,7 +103,7 @@ print() {
 	ft=$(file -b "${TMPFILE}")
 	if echo "$ft" | grep -q text; then
 		__as=$(basename "$as")
-		if [  "$__as" = "a2ps" ] ; then
+		if [ "$__as" = "a2ps" ] ; then
 			log_msg "Converting from ASCII to postscript" \
 				"using $__as"
 			$as -q -M letter -B --center-title="${job}" \
@@ -129,7 +129,8 @@ print() {
 			mv "${ASTMPFILE}" "${GSTMPFILE}"
 			mv_success=$?
 			if [ $mv_success -eq $FALSE ] ; then
-				log_msg Unable to mv "${ASTMPFILE}" "${GSTMPFILE}"
+				log_msg "Unable to mv" \
+					"${ASTMPFILE} to ${GSTMPFILE}"
 				exit $err_exit
 			fi
 		fi
@@ -138,7 +139,7 @@ print() {
 		mv "${TMPFILE}" "${GSTMPFILE}"
 		mv_success=$?
 		if [ $mv_success -eq $FALSE ] ; then
-			log_msg Unable to mv "${ASTMPFILE}" "${GSTMPFILE}"
+			log_msg "Unable to mv ${ASTMPFILE} to ${GSTMPFILE}"
 			exit $err_exit
 		fi
 	else
@@ -154,14 +155,15 @@ print() {
 		# gs_init.ps
 		if [ -e "${gs_init}" ] ; then
 			$gs -q -dNOPROMPT -dNOPAUSE -dSAFER -dBATCH \
-			    -dNOPAUSE -sDEVICE="${gs_device}" -sOutputFile=- \
-			    "${gs_init}" "${GSTMPFILE}" -c quit \
-			    2>"${GSERRFILE}"
+				-dNOPAUSE -sDEVICE="${gs_device}" \
+				-sOutputFile=- "${gs_init}" "${GSTMPFILE}" \
+				-c quit 2>"${GSERRFILE}"
 			gs_success=$?
 		else
 			$gs -q -dNOPROMPT -dNOPAUSE -dSAFER -dBATCH \
-			    -dNOPAUSE -sDEVICE="${gs_device}" -sOutputFile=- \
-			    "${GSTMPFILE}" -c quit 2>"${GSERRFILE}"
+				-dNOPAUSE -sDEVICE="${gs_device}" \
+				-sOutputFile=- "${GSTMPFILE}" \
+				-c quit 2>"${GSERRFILE}"
 			gs_success=$?
 		fi
 		if [ $gs_success -ne $TRUE ] ; then
@@ -170,17 +172,19 @@ print() {
 		fi
 
 		if [ ! -z "$af" ] ; then
-			action="(${GSTMPFILE}) (r) file runpdfbegin pdfpagecount = quit"
-			npages=$($gs -q -dNODISPLAY -c "$action" 2> "${GSERRFILE}")
+			action="(${GSTMPFILE}) (r) file runpdfbegin" \
+				"pdfpagecount = quit"
+			npages=$($gs -q -dNODISPLAY -c "$action" \
+				2>"${GSERRFILE}")
 			if [ $? -eq $TRUE ] ; then
-				printf "%7.2f\\t%s:%s\\n" "$npages" "$host" "$name" \
-				       >> $af
+				printf "%7.2f\\t%s:%s\\n" "$npages" "$host" \
+					"$name" >> $af
 			else
-				log_msg "Print job completed but" \
-					"unable to count pages for accounting file"
+				log_msg "Print job completed but unable to" \
+					"count pages for accounting file"
 				log_msg "$(cat "${GSERRFILE}")"
-				log_msg "This error often arises when converting" \
-					"ASCII to postscript"
+				log_msg "This error often arises when" \
+					"converting ASCII to postscript"
 			fi
 		fi
 	fi
@@ -197,7 +201,8 @@ usage() {
 	fi
 	version
 	log_msg ""
-	opts="[-c] [-h host] [-i indent] [-l length] [-n name] [-w width] [acctfile]"
+	opts="[-c] [-h host] [-i indent] [-l length] [-n name] [-w width]" \
+		"[acctfile]"
 	log_msg "usage: $__progname $opts"
 	log_msg
 }
