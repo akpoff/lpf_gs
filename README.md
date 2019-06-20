@@ -132,7 +132,7 @@ postscript to PCL 6.
   ln -s /usr/local/bin/lpf_gs /usr/local/bin/lpf_pxlmono
 ```
 
-(**N.B.** *pxlcolor* work for PCL 6 color printers.)
+(**N.B.** *pxlcolor* works for PCL 6 color printers.)
 
 In addition to converting input formats, because it's an accounting
 filter, lpf_gs can log accounting information if given an accounting
