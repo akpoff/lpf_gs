@@ -32,7 +32,7 @@ hostname=$(hostname -s)
 pid=$$
 err_exit=1
 gs_device=$(basename "$__progname" '.if' | cut -d '_' -f 2)
-function log_msg {
+log_msg() {
 	msg="$@"
 	if [ -z "$msg" ] ; then
 		return 0
@@ -66,6 +66,9 @@ GSTMPFILE="${TMPFILE}.gs"
 trap "rm -f '${TMPFILE}' '${ASERRFILE}' '${ASTMPFILE}' '${GSERRFILE}' '${GSTMPFILE}'" EXIT
 trap "log_msg $__progname aborted by user;exit $err_exit" INT
 
+TRUE=0
+FALSE=1
+
 # command line parameters that will be passed in from lpd
 # printcap(5) FILTERS section
 af=""		  # accounting file path
@@ -78,8 +81,6 @@ name=""		  # user who started job
 width=132	  # page width (default from lpf.c)
 
 # other variables
-TRUE=0
-FALSE=1
 call="$0 $@"
 cmd="print"	  # options: abort | print | usage | version
 debug=$FALSE
@@ -89,7 +90,7 @@ version="1.0"
 gs_init="${__dirname}/gs_init.ps"
 
 # does the real work
-function print {
+print() {
 	# send stdin to a file we can check format to see whether
 	# we can print it
 	cat > "${TMPFILE}"
@@ -180,11 +181,11 @@ function print {
 	fi
 }
 
-function version {
+version() {
 	log_msg "$__basename $version - (linked as $__progname)"
 }
 
-function usage {
+usage() {
 	# dispose of stdin data
 	if [ ! -t 0 ] ; then
 		cat > /dev/null
@@ -196,7 +197,7 @@ function usage {
 	log_msg
 }
 
-function debug {
+debug() {
 	if [ $debug -eq $TRUE -o ! -z "$LPF_GS_DEBUG" ] ; then
 		log_msg Variables:
 		log_msg $call
