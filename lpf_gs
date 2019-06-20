@@ -102,8 +102,8 @@ print() {
 	# we can print it
 	cat > "${TMP_FILE}"
 	can_convert=$TRUE
-	ft=$(file -b "${TMP_FILE}")
-	if echo "$ft" | grep -q text; then
+	ft=$(file -b "${TMP_FILE}" | awk '{print $1}')
+	if [ "$ft" = ASCII ]; then
 		__as=$(basename "$as")
 		if [ "$__as" = "a2ps" ] ; then
 			log "Converting from ASCII to postscript" \
