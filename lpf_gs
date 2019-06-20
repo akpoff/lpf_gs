@@ -123,7 +123,7 @@ print() {
 			exit $err_exit
 		fi
 		if [ $as_success -eq $FALSE ] ; then
-			log_msg $(cat "${ASERRFILE}")
+			log_msg "$(cat "${ASERRFILE}")"
 			exit $err_exit
 		else
 			mv "${ASTMPFILE}" "${GSTMPFILE}"
@@ -165,7 +165,7 @@ print() {
 			gs_success=$?
 		fi
 		if [ $gs_success -ne $TRUE ] ; then
-			log_msg $(cat "${GSERRFILE}")
+			log_msg "$(cat "${GSERRFILE}")"
 			exit $err_exit
 		fi
 
@@ -178,7 +178,7 @@ print() {
 			else
 				log_msg Print job completed but \
 					unable to count pages for accounting file
-				log_msg $(cat "${GSERRFILE}")
+				log_msg "$(cat "${GSERRFILE}")"
 				log_msg This error often arises when converting \
 					ASCII to postscript
 			fi
