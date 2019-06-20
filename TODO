@@ -1,4 +1,7 @@
 lpf_gs TODO
 ============
 
++ Move some variables in body of lpf_gs higher up where users adjust
+  them more easily
++ Maybe document gs_init.ps more thoroughly
 + Maybe rewrite in c
