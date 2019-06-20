@@ -32,9 +32,9 @@ hostname=$(hostname -s)
 pid=$$
 err_exit=1
 gs_device=$(basename "$__progname" '.if' | cut -d '_' -f 2)
-log_msg() {
-	msg="$*"
-	if [ -z "$msg" ] ; then
+
+log() {
+	if [ -z "$*" ] ; then
 		return 0
 	fi
 	if [ ! -t 0 ] ; then
@@ -46,17 +46,18 @@ log_msg() {
 
 		# send to stderr for logging
 		# lpd will handle logging
-		echo "$date $hostname $__progname[$pid]: ($job) $msg" >&2
+		printf "%s\\n" "$date $hostname $__progname[$pid]: ($job)" \
+			"$*" > /dev/stderr
 	else
 		# send to stdout to work with pipes
 		# when users call from cl
-		echo "$msg"
+		printf "%s\\n" "$*"
 	fi
 }
 
 # create temp files
 TMPFILE=$(mktemp -q "/tmp/lpf_${gs_device}.XXXXXXXXXX") ||
-	(log_msg "Unable to create $__progname tmp file ... aborting" ; \
+	(log "Unable to create $__progname tmp file ... aborting" ; \
 	 exit $err_exit)
 ASERRFILE="${TMPFILE}.as_err"
 ASTMPFILE="${TMPFILE}.as"
@@ -69,7 +70,7 @@ cleanup() {
 		"${GSERRFILE}" "${GSTMPFILE}"
 }
 trap cleanup EXIT
-trap 'log_msg $__progname aborted by user;exit $err_exit' INT
+trap 'log $__progname aborted by user;exit $err_exit' INT
 
 TRUE=0
 FALSE=1
@@ -104,14 +105,14 @@ print() {
 	if echo "$ft" | grep -q text; then
 		__as=$(basename "$as")
 		if [ "$__as" = "a2ps" ] ; then
-			log_msg "Converting from ASCII to postscript" \
+			log "Converting from ASCII to postscript" \
 				"using $__as"
 			$as -q -M letter -B --center-title="${job}" \
 				--output="${ASTMPFILE}" \
 				"${TMPFILE}" 2>"${ASERRFILE}"
 			as_success=$?
 		elif [ "$__as" = "enscript" ] ; then
-			log_msg "Converting from ASCII to postscript" \
+			log "Converting from ASCII to postscript" \
 				"using $__as"
 			$as -q --header="${job} %W Page $% of $=" \
 				--output="${ASTMPFILE}" \
@@ -119,32 +120,32 @@ print() {
 			as_success=$?
 		else
 			can_convert=$FALSE
-			log_msg No ASCII converter found, abort conversion...
+			log No ASCII converter found, abort conversion...
 			exit $err_exit
 		fi
 		if [ $as_success -eq $FALSE ] ; then
-			log_msg "$(cat "${ASERRFILE}")"
+			log "$(cat "${ASERRFILE}")"
 			exit $err_exit
 		else
 			mv "${ASTMPFILE}" "${GSTMPFILE}"
 			mv_success=$?
 			if [ $mv_success -eq $FALSE ] ; then
-				log_msg "Unable to mv" \
+				log "Unable to mv" \
 					"${ASTMPFILE} to ${GSTMPFILE}"
 				exit $err_exit
 			fi
 		fi
 	elif echo "$ft" | grep -Eq 'PDF|PostScript'; then
-		log_msg "Converting from PDF to $gs_device"
+		log "Converting from PDF to $gs_device"
 		mv "${TMPFILE}" "${GSTMPFILE}"
 		mv_success=$?
 		if [ $mv_success -eq $FALSE ] ; then
-			log_msg "Unable to mv ${ASTMPFILE} to ${GSTMPFILE}"
+			log "Unable to mv ${ASTMPFILE} to ${GSTMPFILE}"
 			exit $err_exit
 		fi
 	else
 		can_convert=$FALSE
-		log_msg "Unknown file type ($ft), aborting conversion..."
+		log "Unknown file type ($ft), aborting conversion..."
 		exit $err_exit
 	fi
 
@@ -167,7 +168,7 @@ print() {
 			gs_success=$?
 		fi
 		if [ $gs_success -ne $TRUE ] ; then
-			log_msg "$(cat "${GSERRFILE}")"
+			log "$(cat "${GSERRFILE}")"
 			exit $err_exit
 		fi
 
@@ -180,10 +181,10 @@ print() {
 				printf "%7.2f\\t%s:%s\\n" "$npages" "$host" \
 					"$name" >> $af
 			else
-				log_msg "Print job completed but unable to" \
+				log "Print job completed but unable to" \
 					"count pages for accounting file"
-				log_msg "$(cat "${GSERRFILE}")"
-				log_msg "This error often arises when" \
+				log "$(cat "${GSERRFILE}")"
+				log "This error often arises when" \
 					"converting ASCII to postscript"
 			fi
 		fi
@@ -209,21 +210,21 @@ usage() {
 
 debug() {
 	if [ $debug -eq $TRUE ] || [ -n "$LPF_GS_DEBUG" ] ; then
-		log_msg Variables:
-		log_msg "$call"
-		log_msg "device=$gs_device"
-		log_msg "af=$af"
-		log_msg "ctrl=$ctrl"
-		log_msg "host=$host"
-		log_msg "gs=$gs"
-		log_msg "indent=$indent"
-		log_msg "length=$length"
-		log_msg "name=$name"
-		log_msg "width=$width"
-		log_msg "pid=$pid"
-		log_msg "cmd=$cmd"
-		log_msg "version=$version"
-		log_msg
+		log Variables:
+		log "$call"
+		log "device=$gs_device"
+		log "af=$af"
+		log "ctrl=$ctrl"
+		log "host=$host"
+		log "gs=$gs"
+		log "indent=$indent"
+		log "length=$length"
+		log "name=$name"
+		log "width=$width"
+		log "pid=$pid"
+		log "cmd=$cmd"
+		log "version=$version"
+		log
 	fi
 }
 
@@ -233,25 +234,25 @@ if [ "$__progname" = "$__basename" ] ; then
 fi
 
 if [ ! -f "$gs" ] ; then
-	log_msg "Ghostscript not installed."
-	log_msg
-	log_msg "Please install Ghostscript."
+	log "Ghostscript not installed."
+	log
+	log "Please install Ghostscript."
 	exit $err_exit
 fi
 
 if ! gs -h | grep -q "$gs_device"; then
 	version
-	log_msg
-	log_msg "No such ghostscript device '$gs_device' (cf gs -h)"
-	log_msg
-	log_msg "Execute 'gs -h' to see a list of supported devices."
+	log
+	log "No such ghostscript device '$gs_device' (cf gs -h)"
+	log
+	log "Execute 'gs -h' to see a list of supported devices."
 	exit $err_exit
 fi
 
 if [ -z "$gs" ] ; then
 	version
-	log_msg
-	log_msg "Unable to find ghostscript."
+	log
+	log "Unable to find ghostscript."
 	exit $err_exit
 fi
 
@@ -285,14 +286,14 @@ while getopts :cdh:i:j:l:n:vw: opt ; do
 			width=${OPTARG}
 			;;
 		:)
-			log_msg "$__progname: option requires an argument" \
+			log "$__progname: option requires an argument" \
 				"-- ${OPTARG}"
-			log_msg
+			log
 			cmd=abort
 			;;
 		\?)
-			log_msg "$__progname: invalid option -- ${OPTARG}"
-			log_msg
+			log "$__progname: invalid option -- ${OPTARG}"
+			log
 			cmd=abort
 			;;
 	esac
