@@ -35,15 +35,13 @@
 is an
 .Xr lpd 8
 accounting filter that takes a PostScript, PDF or text file via stdin
-and converts it to an output format based on the calling name of the
-program using Ghostscript.
-Accouting information is logged to
-.Ar acct-name .
+and converts it to PCL to be sent to non-PostScript printers by
+.Xr lpr 1 .
 .Pp
 .Nm
 is based on the default
 .Xr lpd 8
-accounting filter lpf, though written in
+accounting filter lpf, rewritten in
 .Xr sh 1
 rather than C.
 .Pp
