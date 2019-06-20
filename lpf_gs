@@ -55,7 +55,7 @@ log_msg() {
 }
 
 # create temp files
-TMPFILE=`mktemp -q /tmp/lpf_${gs_device}.XXXXXXXXXX` ||
+TMPFILE=$(mktemp -q /tmp/lpf_${gs_device}.XXXXXXXXXX) ||
 	(log_msg "Unable to create $__progname tmp file ... aborting" ; \
 	 exit $err_exit)
 ASERRFILE="${TMPFILE}.as_err"
