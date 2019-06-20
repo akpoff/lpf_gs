@@ -106,16 +106,16 @@ print() {
 		if [  "$__as" = "a2ps" ] ; then
 			log_msg Converting from ASCII to postscript \
 				using $__as
-			__header="-B --center-title='${job}'"
-			$as -q -M letter $__header --output="${ASTMPFILE}" \
-			    "${TMPFILE}" 2>"${ASERRFILE}"
+			$as -q -M letter -B --center-title="${job}" \
+				--output="${ASTMPFILE}" \
+				"${TMPFILE}" 2>"${ASERRFILE}"
 			as_success=$?
 		elif [ "$__as" = "enscript" ] ; then
-			__header="${job} %W Page $% of $="
 			log_msg Converting from ASCII to postscript \
 				using $__as
-			$as -q --header="$__header" --output="${ASTMPFILE}" \
-			    "${TMPFILE}" 2>"${ASERRFILE}"
+			$as -q --header="${job} %W Page $% of $=" \
+				--output="${ASTMPFILE}" \
+				"${TMPFILE}" 2>"${ASERRFILE}"
 			as_success=$?
 		else
 			can_convert=$FALSE
