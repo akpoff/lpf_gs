@@ -168,7 +168,7 @@ print() {
 			action="(${GSTMPFILE}) (r) file runpdfbegin pdfpagecount = quit"
 			npages=$($gs -q -dNODISPLAY -c "$action" 2> "${GSERRFILE}")
 			if [ $? -eq $TRUE ] ; then
-				printf "%7.2f\t%s:%s\n" "$npages" "$host" "$name" \
+				printf "%7.2f\\t%s:%s\\n" "$npages" "$host" "$name" \
 				       >> $af
 			else
 				log_msg Print job completed but \
@@ -217,7 +217,7 @@ debug() {
 	fi
 }
 
-if [ $__progname == $__basename ] ; then
+if [ $__progname = $__basename ] ; then
 	usage
 	exit 0
 fi
