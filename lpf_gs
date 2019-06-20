@@ -33,7 +33,7 @@ pid=$$
 err_exit=1
 gs_device=$(basename "$__progname" '.if' | cut -d '_' -f 2)
 log_msg() {
-	msg="$@"
+	msg="$*"
 	if [ -z "$msg" ] ; then
 		return 0
 	fi
@@ -81,7 +81,7 @@ name=""		  # user who started job
 width=132	  # page width (default from lpf.c)
 
 # other variables
-call="$0 $@"
+call="$0 $*"
 cmd="print"	  # options: abort | print | usage | version
 debug=$FALSE
 as=$(which a2ps 2>/dev/null || which enscript 2>/dev/null)
@@ -290,7 +290,7 @@ while getopts :cdh:i:j:l:n:vw: opt ; do
 done
 shift $(( OPTIND - 1 ))
 # get remaining parameter as accounting file
-af=$@
+af="$*"
 
 case $cmd in
 	print)
