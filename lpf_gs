@@ -57,18 +57,20 @@ log() {
 }
 
 # create temp files
-TMP_FILE=$(mktemp -q "/tmp/lpf_${gs_device}.XXXXXXXXXX") ||
+TMP_DIR=$(mktemp -dq "/tmp/lpf_${gs_device}.XXXXXXXXXX") ||
 	(log "Unable to create $__progname tmp file ... aborting" ; \
 	 exit $err_exit)
-AS_ERR_FILE="${TMP_FILE}.as_err"
-AS_TMP_FILE="${TMP_FILE}.as"
-GS_ERR_FILE="${TMP_FILE}.gs_err"
-GS_TMP_FILE="${TMP_FILE}.gs"
+
+IN_TMP_FILE="${TMP_DIR}/in_file"
+AS_ERR_FILE="${TMP_DIR}/as_err"
+AS_TMP_FILE="${TMP_DIR}/as"
+GS_ERR_FILE="${TMP_DIR}/gs_err"
+GS_TMP_FILE="${TMP_DIR}/gs"
+export TMPDIR="$TMP_FILE"
 
 cleanup() {
 	trap "" EXIT
-	rm -f "${TMP_FILE}" "${AS_ERR_FILE}" "${AS_TMP_FILE}" \
-		"${GS_ERR_FILE}" "${GS_TMP_FILE}"
+	rm -Rf "${TMP_DIR}"
 }
 trap cleanup EXIT
 trap 'log $__progname aborted by user;exit $err_exit' INT
@@ -209,6 +211,7 @@ usage() {
 debug() {
 	if [ $debug -eq $TRUE ] || [ -n "$LPF_GS_DEBUG" ] ; then
 		log Variables:
+		log "TMP_DIR=${TMP_DIR}"
 		log "$call"
 		log "device=$gs_device"
 		log "af=$af"
